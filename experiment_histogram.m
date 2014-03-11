@@ -6,6 +6,7 @@ for i=1:20
 
 % Load image
 frame = frames{i};
+frame_rgb = frame(:,:,4:6)/255;
 
 % Convert to chromaticity
 frame_ch = convertToChromaticity(frame(:,:,4:6));
@@ -36,24 +37,36 @@ if stats(sortedAreaIndexes(1)).Centroid(2) >= stats(sortedAreaIndexes(2)).Centro
 else
     box_base = sortedAreaIndexes(2);
 end
-
-% Apply combined thresholds to the image
-chr_masked_image = repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3);
-
-% Display handy images to help with development
-figure(2)
-imshow(frame_ch(:,:,1:3)); % chromaticity image
-figure(3)
-imshow(frame(:,:,4:6)/255); % rgb image
-show_depth_image(frame, 4); % depth image
-figure(5)
 im_box_bottom = zeros( size(rgbdMask) );
 im_box_bottom( stats(box_base).PixelIdxList ) = 1;
-imshow(im_box_bottom) % detected base of box (orange region)
 
-% Display isolated regions
+% Find the lower edge of the bottom region.
+bottom_rows = max(repmat((1:480)', 1, 640) .* im_box_bottom);
+
+% Find all depth values above the lower edge of the box.
+im_region_above_box_bottom = zeros( size(rgbdMask) );
+for col = 1:640,
+    row = bottom_rows(col);
+    if row > 0,
+        im_region_above_box_bottom(1:row, col) = 1;
+    end
+end 
+final_box_mask = im_region_above_box_bottom & depthMask;
+
+% TODO: Histogram thresholding to remove noise from edges of box.
+
+% Display handy images to help with development
 figure(1)
-imshow(chr_masked_image)
+imshow(frame_rgb); % rgb image
+show_depth_image(frame, 2); % depth image
+figure(3)
+imshow(frame_ch(:,:,1:3)); % chromaticity image
+figure(4)
+imshow(repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Display isolated regions
+figure(5)
+imshow(im_box_bottom) % detected base of box (orange region)
+figure(6)
+imshow(repmat(final_box_mask, 1, 1, 3) .* frame_rgb); % Detected box
 pause
 
 end
