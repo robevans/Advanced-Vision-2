@@ -15,9 +15,9 @@ gaussianFilter = fspecial('gaussian',[5 5],2);
 frame_ch = imfilter(frame_ch, gaussianFilter, 'same');
 
 % Threshold each chromaticity colour channel to detect orange regions.
-rChMask = frame_ch(:,:,1) > 0.43 & frame_ch(:,:,1) < 0.69;
-gChMask = frame_ch(:,:,2) > 0.24 & frame_ch(:,:,2) < 0.33;
-bChMask = frame_ch(:,:,3) > 0.06 & frame_ch(:,:,3) < 0.28;
+rChMask = frame_ch(:,:,1) > 0.43 & frame_ch(:,:,1) < 0.71;
+gChMask = frame_ch(:,:,2) > 0.21 & frame_ch(:,:,2) < 0.33;
+bChMask = frame_ch(:,:,3) > 0.02 & frame_ch(:,:,3) < 0.28;
 rgbChMask = rChMask & gChMask & bChMask;
 
 % Find the depth image values that are not nans.
