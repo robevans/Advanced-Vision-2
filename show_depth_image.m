@@ -1,8 +1,9 @@
-function show_depth_image( frame1, figHandle )
-%SHOW_DEPTH_IMAGE shows a false colour depth image.
+function [ output_args ] = show_depth_image( frame1, figure_handle )
+%SHOW_DEPTH_IMAGE Summary of this function goes here
+%   Detailed explanation goes here
 
 if nargin < 2
-    figHandle = figure;
+    figure_handle = figure();
 end
 
 xyzrgb = frame1;
@@ -22,8 +23,9 @@ end
 mn = min(min(min(frgb)));
 mx = max(max(max(frgb)));
 
-figure(figHandle);
+figure(figure_handle);
 imagesc((frgb-mn)/(mx-mn));
+
 
 end
 
