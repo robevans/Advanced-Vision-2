@@ -1,53 +1,36 @@
-clearvars
-
+clearvars, close all
 load kinect_recyclebox_20frames
-
 frames = kinect_recyclebox_20frames;
 
 for i=1:20
 
-% Load and normalise
+% Load image
 frame = frames{i};
-frame_rgb = frame(:,:,4:6)/255;
+
+% Convert to chromaticity
 frame_ch = convertToChromaticity(frame(:,:,4:6));
 
-% Smooth images
+% Smooth
 gaussianFilter = fspecial('gaussian',[5 5],2);
-frame_rgb = imfilter(frame_rgb, gaussianFilter, 'same');
 frame_ch = imfilter(frame_ch, gaussianFilter, 'same');
 
-figure(1)
-imshow(frame_ch(:,:,1:3));
+% Threshold each chromaticity colour channel to detect orange regions.
+rChMask = frame_ch(:,:,1) > 0.43 & frame_ch(:,:,1) < 0.69;
+gChMask = frame_ch(:,:,2) > 0.24 & frame_ch(:,:,2) < 0.33;
+bChMask = frame_ch(:,:,3) > 0.06 & frame_ch(:,:,3) < 0.28;
+rgbChMask = rChMask & gChMask & bChMask;
 
-%{
-rFrame = frame1_rgb(:,:,1);
-gFrame = frame1_rgb(:,:,2);
-bFrame = frame1_rgb(:,:,3);
-%}
+% Find the depth image values that are not nans.
+depthMask = ~isnan(frame(:,:,1)) & ~isnan(frame(:,:,2)) & ~isnan(frame(:,:,3));
 
-rChFrame = frame_ch(:,:,1);
-gChFrame = frame_ch(:,:,2);
-bChFrame = frame_ch(:,:,3);
+% Combine depth and chromaticity masks
+rgbdMask = rgbChMask & depthMask;
 
-%{
-rMask = rFrame > 0.5 & rFrame < 0.72;
-gMask = gFrame > 0.18 & gFrame < 0.37;
-bMask = bFrame > 0.07 & bFrame < 0.32;
-%}
+% Apply combined thresholds to the image
+chr_masked_image = repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3);
 
-rChMask = rChFrame > 0.43 & rChFrame < 0.69;
-gChMask = gChFrame > 0.24 & gChFrame < 0.33;
-bChMask = bChFrame > 0.06 & bChFrame < 0.28;
-
-%rgbIntersectionMask = rMask & gMask & bMask;
-chrIntersectionMask = rChMask & gChMask & bChMask;
-
-%rgb_masked_image = repmat(rgbIntersectionMask, 1, 1, 3) .* frame1_rgb;
-
-chr_masked_image = repmat(chrIntersectionMask, 1, 1, 3) .* frame_ch(:,:,1:3);
-
-figure(2)
+% Display isolated regions
 imshow(chr_masked_image)
-
 pause
+
 end
