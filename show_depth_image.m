@@ -1,10 +1,14 @@
-function [ output_args ] = show_depth_image( frame1 )
-%SHOW_DEPTH_IMAGE Summary of this function goes here
-%   Detailed explanation goes here
+function show_depth_image( frame1, figHandle )
+%SHOW_DEPTH_IMAGE shows a false colour depth image.
+
+if nargin < 2
+    figHandle = figure;
+end
+
 xyzrgb = frame1;
 
-xyz = reshape(xyzrgb(:, :, 1:3), 640*480, 3);
-xyzc = xyz(~any(isnan(xyz), 2), :);
+%xyz = reshape(xyzrgb(:, :, 1:3), 640*480, 3);
+%xyzc = xyz(~any(isnan(xyz), 2), :);
 
 frgb = zeros(480, 640, 3);
 for r = 1 : 480
@@ -18,9 +22,8 @@ end
 mn = min(min(min(frgb)));
 mx = max(max(max(frgb)));
 
-figure;
+figure(figHandle);
 imagesc((frgb-mn)/(mx-mn));
-
 
 end
 

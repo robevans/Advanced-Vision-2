@@ -29,7 +29,15 @@ rgbdMask = rgbChMask & depthMask;
 % Apply combined thresholds to the image
 chr_masked_image = repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3);
 
+% Display handy images to help with development
+figure(2)
+imshow(frame_ch(:,:,1:3)); % chromaticity image
+figure(3)
+imshow(frame(:,:,4:6)/255); % rgb image
+show_depth_image(frame, 4); % depth image
+
 % Display isolated regions
+figure(1)
 imshow(chr_masked_image)
 pause
 
