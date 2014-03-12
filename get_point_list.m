@@ -1,5 +1,5 @@
-function edge_point_list = get_edge_point_list(frame, edges_2d_mask)
-%GET_EDGE_POINT_LIST masks the depth frame and returns the list of points,
+function edge_point_list = get_point_list(frame, edges_2d_mask)
+%GET_POINT_LIST masks the depth frame and returns the list of points,
 %removing any nans and (0,0,0) points.
 
 frame_depth = frame(:, :, 1:3);
