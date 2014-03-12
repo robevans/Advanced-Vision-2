@@ -6,8 +6,6 @@ frames = kinect_recyclebox_20frames;
 foundation_frame_index = floor(length(frames) / 2);
 foundation_frame = frames{foundation_frame_index};
 
-composite_3d_points = foundation_frame(:, :, 1:3);
-
 foundation_box_mask = get_box_mask(foundation_frame);
 
 foundation_edges_mask = get_box_edges(foundation_frame, ...
@@ -34,7 +32,10 @@ edge_point_list = get_point_list(frame, edges_mask);
 box_3d_points = get_point_list(frame, box_mask);
 
 [TRe, TTe] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
-[TRf, TTf] = icp(foundation_box_3d_points, box_3d_points, 100, 'Matching', 'kDtree');
+%[TRf, TTf] = icp(foundation_box_3d_points, box_3d_points, 100, 'Matching', 'kDtree');
+
+TRf = TRe;
+TTf = TTe;
 
 TR = (TRf + TRe*10) / 11;
 TT = (TTf + TTe*10) / 11;
