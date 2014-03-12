@@ -6,33 +6,36 @@ frames = kinect_recyclebox_20frames;
 foundation_frame_index = floor(length(frames) / 2);
 foundation_frame = frames{foundation_frame_index};
 
-foundation_frame_mask = get_box_mask(foundation_frame);
+foundation_box_mask = get_box_mask(foundation_frame);
 
-foundation_frame_edges = get_box_edges(foundation_frame, ...
-    foundation_frame_mask);
+foundation_edges_mask = get_box_edges(foundation_frame, ...
+    foundation_box_mask);
 
-foundation_edge_depth_points ...
-    = foundation_frame(:, :, 1:3) .* repmat(foundation_frame_edges, 1, 1, 3);
-
-foundation_edge_point_list ...
-    = reshape(foundation_edge_depth_points(:, :, 1:3), 3, 640*480);
+foundation_edge_point_list = get_edge_point_list(foundation_frame, foundation_edges_mask);
 
 for i=1:20
 
 % Load image
 frame = frames{i};
 
-mask = get_box_mask(frame);
+box_mask = get_box_mask(frame);
 
-edge_2d_points = get_box_edges(frame, mask);
+edges_mask = get_box_edges(frame, box_mask);
 
-edge_3d_points ...
-    = frame(:, :, 1:3) .* repmat(edge_2d_points, 1, 1, 3);
-edge_point_list ...
-    = reshape(edge_3d_points(:, :, 1:3), 3, 640*480);
+edge_point_list = get_edge_point_list(frame, edges_mask);
 
+tic
+[TR, TT] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
+toc
 
-[TR, TT] = icp(foundation_edge_point_list, edge_point_list);
+Q = foundation_edge_point_list';
+T = (TR * edge_point_list + repmat(TT, 1, length(edge_point_list)))';
+
+figure(1)
+hold on
+plot3(Q(:,1), Q(:,2), Q(:,3), 'k.', 'MarkerSize', 10);
+plot3(T(:,1), T(:,2), T(:,3), 'b.', 'MarkerSize', 10);
+hold off
 
 pause;
 
