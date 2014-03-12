@@ -1,9 +1,5 @@
-function [ final_box_mask ] = get_box_mask( frame )
-%GET_BOX_MASK Summary of this function goes here
-%   Detailed explanation goes here
-
-
-% Convert to chromaticity
+function [ whole_box_mask ] = get_box_mask( frame )
+%GET_BOX_MASK Extracts mask for box region from the image
 
 % Convert to chromaticity
 frame_ch = convertToChromaticity(frame(:,:,4:6));
@@ -21,12 +17,12 @@ rgbChMask = rChMask & gChMask & bChMask;
 % Find the depth image values that are not nans.
 depthMask = ~isnan(frame(:,:,1)) & ~isnan(frame(:,:,2)) & ~isnan(frame(:,:,3));
 
-% Combine depth and chromaticity masks
+% Intersect depth and chromaticity masks
 rgbdMask = rgbChMask & depthMask;
 
 % Find two large objects in the mask (the orange parts of the box)
-stats = regionprops(rgbdMask,'Area','PixelIdxList', 'PixelList','Centroid');
-[~, sortedAreaIndexes] = sort([stats.Area], 'descend');
+stats = regionprops(rgbdMask,'Area','PixelIdxList','Centroid');
+[~,sortedAreaIndexes] = sort([stats.Area], 'descend');
 
 % Find the region lowest in the image (the bottom of the box).
 if stats(sortedAreaIndexes(1)).Centroid(2) >= stats(sortedAreaIndexes(2)).Centroid(2)
@@ -34,31 +30,21 @@ if stats(sortedAreaIndexes(1)).Centroid(2) >= stats(sortedAreaIndexes(2)).Centro
 else
     box_base = sortedAreaIndexes(2);
 end
-
-% Apply combined thresholds to the image
-
 im_box_bottom = zeros( size(rgbdMask) );
 im_box_bottom( stats(box_base).PixelIdxList ) = 1;
 
-[row_size, col_size] = size(im_box_bottom);
-row_numbers = (1:row_size)';
+% Find the lower edge of the bottom region.
+bottom_rows = max(repmat((1:480)', 1, 640) .* im_box_bottom);
 
-row_numbered_matrix = repmat(row_numbers, 1, col_size);
-
-row_numbered_matrix = row_numbered_matrix .* im_box_bottom;
-bottom_rows = max(row_numbered_matrix);
-
-
-
-for i=1:col_size,
-    row = bottom_rows(i);
-    
+% Find all depth values above the lower edge of the box.
+im_region_above_box_bottom = zeros( size(rgbdMask) );
+for col = 1:640,
+    row = bottom_rows(col);
     if row > 0,
-        im_box_bottom(1:row, i) = 1;
+        im_region_above_box_bottom(1:row, col) = 1;
     end
-end
-
-final_box_mask = im_box_bottom & depthMask;
+end 
+whole_box_mask = im_region_above_box_bottom & depthMask;
 
 end
 
