@@ -15,7 +15,8 @@ foundation_edges_mask = get_box_edges(foundation_frame, ...
 
 foundation_edge_point_list = get_point_list(foundation_frame, foundation_edges_mask);
 
-composite_3d_points = get_point_list(foundation_frame, foundation_box_mask);
+foundation_box_3d_points = get_point_list(foundation_frame, foundation_box_mask);
+composite_3d_points = foundation_box_3d_points;
 
 for i=1:20
     if i == foundation_frame_index,
@@ -30,10 +31,14 @@ box_mask = get_box_mask(frame);
 edges_mask = get_box_edges(frame, box_mask);
 
 edge_point_list = get_point_list(frame, edges_mask);
-
-[TR, TT] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
-
 box_3d_points = get_point_list(frame, box_mask);
+
+[TRe, TTe] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
+[TRf, TTf] = icp(foundation_box_3d_points, box_3d_points, 100, 'Matching', 'kDtree');
+
+TR = (TRf + TRe*10) / 11;
+TT = (TTf + TTe*10) / 11;
+
 
 transformed_box_3d_points ...
  = TR * box_3d_points + repmat(TT, 1, length(box_3d_points));
