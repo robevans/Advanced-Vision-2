@@ -24,7 +24,7 @@ rgbChMask = rChMask & gChMask & bChMask;
 % Find the depth image values that are not nans.
 depthMask = ~isnan(frame(:,:,1)) & ~isnan(frame(:,:,2)) & ~isnan(frame(:,:,3));
 
-% Combine depth and chromaticity masks
+% Intersect depth and chromaticity masks
 rgbdMask = rgbChMask & depthMask;
 
 % Find two large objects in the mask (the orange parts of the box)
@@ -51,9 +51,22 @@ for col = 1:640,
         im_region_above_box_bottom(1:row, col) = 1;
     end
 end 
-final_box_mask = im_region_above_box_bottom & depthMask;
+whole_box_mask = im_region_above_box_bottom & depthMask;
 
-% TODO: Histogram thresholding to remove noise from edges of box.
+%{
+%Histogram thresholding to remove noise from edges of box.
+detection_image = repmat(whole_box_mask, 1, 1, 3) .* frame_rgb;
+detection_ch_image = repmat(whole_box_mask, 1, 1, 3) .* frame_ch(:,:,1:3);
+
+% Threshold each colour channel to eliminate noise around the box.  (Better
+to use adaptive thresholding)
+rMask = frame_rgb(:,:,1) > 0.1 & frame_rgb(:,:,1) < 0.79 & (frame_rgb(:,:,1) < 0.37 | frame_rgb(:,:,1) > 0.48);
+gMask = frame_rgb(:,:,2) > 0.06 & frame_rgb(:,:,2) < 0.71;
+bMask = frame_rgb(:,:,3) > 0.01 & frame_rgb(:,:,3) < 0.7;
+noise_removal_mask = rMask & gMask & bMask & whole_box_mask;
+
+% Fill the largest connected component (the box) to remove any holes
+%}
 
 % Display handy images to help with development
 figure(1)
@@ -66,7 +79,9 @@ imshow(repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Display isolated regio
 figure(5)
 imshow(im_box_bottom) % detected base of box (orange region)
 figure(6)
-imshow(repmat(final_box_mask, 1, 1, 3) .* frame_rgb); % Detected box
+imshow(repmat(whole_box_mask, 1, 1, 3) .* frame_rgb); % Detected box with edge noise
+%figure(7)
+%imshow(repmat(noise_removal_mask, 1, 1, 3) .* frame_rgb); % Detected box thresholded for noise
 pause
 
 end
