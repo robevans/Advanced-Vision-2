@@ -15,7 +15,7 @@ function [plane,fit] = fitplane(pointlist)
   [U,DG,V] = svd(S);        % find eigenvectors
   N = V(1:3,4);             % plane normal is eivenvector with smallest eigenvalue
   plane(1:3) = N' / norm(N); % make to unit normal
-  plane(4) = 100*V(4,4) / norm(N) - com*plane(1:3); % recompute d in N*x+d=0 fit
+  plane(4) = 100*V(4,4) / norm(N) - com(1:3)*plane(1:3); % recompute d in N*x+d=0 fit
   if plane(3) < 0       % all normals face sensor
     plane = -plane;
   end

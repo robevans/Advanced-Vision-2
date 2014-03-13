@@ -1,0 +1,65 @@
+function [ Planes, Assignments ] = plane_kmeans( points, planes_k, iterations )
+%PLANE_KMEANS Summary of this function goes here
+%   Detailed explanation goes here
+
+d_size = length(points);
+
+P = rand(4, planes_k);
+
+iterations_start = iterations;
+
+Assignments = ones(length(points), 1);
+Distances = zeros(length(points), 1);
+%points = [points, ones(length(points), 1)];
+
+while iterations > 0
+    restart = false;
+    
+    dist = abs(points * P(1:3, :) + repmat(P(4, :), d_size, 1));
+    [~, I] = min(dist, [], 2);
+    Assignments = I;
+    Distances = dist(I);
+    
+    for i=1:planes_k,
+        a = sum(Assignments == i) / d_size;
+        fprintf('Ratio for of plane %d : %f\n', i, a);
+        if a == 1.0 || a == 0.0,
+            P = rand(4, planes_k);
+            restart = true;
+            iterations = iterations_start;
+            disp('Initial plane setup was bad - restarting');
+        end
+    end
+    
+    if restart
+        continue;
+    end
+    
+    for i=1:planes_k,
+        plane_points = points(Assignments == i, :);
+        if isempty(plane_points),
+            continue
+        end
+        %plane_normal = P(:, i);
+        %[plane, fit] = fitplane(plane_points);
+        XYZ = plane_points;
+        cm = mean(XYZ, 1);
+
+        % subtract off the column means
+        XYZ0 = bsxfun(@minus, XYZ, cm);
+        [U, S, V] = svd(XYZ0, 0);
+        n = V(:,3);
+        n(4) = -cm * n;
+        P(:, i) = n;
+        %P(:, i) = null( plane_points, 'r');    
+    end
+    
+    iterations = iterations - 1;
+end
+
+Planes = P;
+
+fprintf('Total plane fitting error %f\n', sum(Distances));
+
+end
+
