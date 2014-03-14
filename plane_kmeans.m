@@ -22,7 +22,7 @@ while iterations > 0
     
     for i=1:planes_k,
         a = sum(Assignments == i) / d_size;
-        fprintf('Ratio for of plane %d : %f\n', i, a);
+        fprintf('Percentage of points in plane %d : %f\n', i, a);
         if a == 1.0 || a == 0.0,
             P = rand(4, planes_k);
             restart = true;
@@ -55,6 +55,12 @@ while iterations > 0
     end
     
     iterations = iterations - 1;
+    
+    if sum(Distances) > 20000 && iterations == 0,
+    P = rand(4, planes_k);
+    iterations = iterations_start;
+    disp('Error too large - restarting');
+    end
 end
 
 Planes = P;
