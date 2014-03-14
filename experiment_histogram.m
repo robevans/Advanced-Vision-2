@@ -53,20 +53,19 @@ for col = 1:640,
 end 
 whole_box_mask = im_region_above_box_bottom & depthMask;
 
-%{
+
 %Histogram thresholding to remove noise from edges of box.
 detection_image = repmat(whole_box_mask, 1, 1, 3) .* frame_rgb;
 detection_ch_image = repmat(whole_box_mask, 1, 1, 3) .* frame_ch(:,:,1:3);
 
-% Threshold each colour channel to eliminate noise around the box.  (Better
-to use adaptive thresholding)
-rMask = frame_rgb(:,:,1) > 0.1 & frame_rgb(:,:,1) < 0.79 & (frame_rgb(:,:,1) < 0.37 | frame_rgb(:,:,1) > 0.48);
-gMask = frame_rgb(:,:,2) > 0.06 & frame_rgb(:,:,2) < 0.71;
-bMask = frame_rgb(:,:,3) > 0.01 & frame_rgb(:,:,3) < 0.7;
+% Threshold each colour channel to eliminate noise around the box.  (Better to use adaptive thresholding)
+rMask = frame_ch(:,:,1) > 0.1 & frame_ch(:,:,1) < 0.79 & (frame_rgb(:,:,1) < 0.37 | frame_rgb(:,:,1) > 0.48);
+gMask = frame_ch(:,:,2) > 0.06 & frame_ch(:,:,2) < 0.71;
+bMask = frame_ch(:,:,3) > 0.01 & frame_ch(:,:,3) < 0.7;
 noise_removal_mask = rMask & gMask & bMask & whole_box_mask;
 
 % Fill the largest connected component (the box) to remove any holes
-%}
+
 
 % Display handy images to help with development
 figure(1)
@@ -79,9 +78,10 @@ imshow(repmat(rgbdMask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Display isolated regio
 figure(5)
 imshow(im_box_bottom) % detected base of box (orange region)
 figure(6)
-imshow(repmat(whole_box_mask, 1, 1, 3) .* frame_rgb); % Detected box with edge noise
-%figure(7)
-%imshow(repmat(noise_removal_mask, 1, 1, 3) .* frame_rgb); % Detected box thresholded for noise
+imshow(repmat(whole_box_mask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Detected box with edge noise
+figure(7)
+imshow(repmat(noise_removal_mask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Detected box thresholded for noise
+threeHists(detection_ch_image, 8)
 pause
 
 end

@@ -1,5 +1,8 @@
-function threeHists( image )
-figure
+function threeHists( image, figHandle )
+if nargin < 2
+    figHandle = figure;
+end
+figure(figHandle)
 a = subplot(3,1,1);
 imhist(image(:,:,1))
 b = subplot(3,1,2);
