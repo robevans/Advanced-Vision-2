@@ -1,0 +1,100 @@
+\documentclass{article}
+\usepackage{covington}
+\usepackage{comment}
+\usepackage{url}
+\usepackage{mathtools}
+\usepackage{tipa}
+\usepackage[UKenglish]{babel}
+\usepackage{graphicx}
+\usepackage{subfigure}
+%\usepackage{savetrees}
+%\usepackage[margin=1.0in]{geometry}
+
+%\usepackage{listings}
+%\usepackage[usenames, dvipsnames]{color}
+%\usepackage{tikz}
+%\lstset{language=Python}
+%\lstset{tabsize=2}
+%\lstset{basicstyle=\ttfamily}
+%\lstset{commentstyle=\color{LimeGreen}}
+%\lstset{tagstyle=\color{RoyalBlue}}
+%\lstset{showstringspaces=false}
+
+% Default fixed font does not support bold face
+\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
+\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
+
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage{listings}
+\lstset{
+language=Matlab,
+basicstyle=\ttm,
+breaklines=true,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false  
+}
+
+\newcommand{\code}[2]{
+  \hrulefill
+  \subsection*{#1}
+  \lstinputlisting{#2}
+  \vspace{2em}
+}
+
+
+\begin{document}
+\title{AV Assignment 2\\``3D Image Analysis''}
+\author{s0949775 and s1330128}
+\date{\today}
+\maketitle
+
+
+\section{Introduction}
+
+\section{Methods}
+
+\section{Results}
+\begin{thebibliography}{9}
+  
+\bibitem{course_book}
+  E. R. DAVIES
+  \emph{Computer and Machine Vision: Theory, Algorithms, Practicalities}.
+  Prentice Hall series in artificial intelligence,
+  Fourth edition,
+  2012.
+  
+\bibitem{lecture_code}
+  ADVANCED VISION - TASK 6 MATLAB CODE
+  \url{http://www.inf.ed.ac.uk/teaching/courses/av/MATLAB/TASK6/}
+  
+\bibitem{hough_code}
+  Hough Transform for circle detection
+  \url{http://www.mathworks.co.uk/matlabcentral/fileexchange/9833-hough-transform-for-circle-detection}  
+  
+\end{thebibliography}
+
+\appendix
+
+
+\newpage
+
+\newpage
+\section{Code}
+\label{apen:code_in}
+
+%\lstinputlisting[caption=assgn\_tracking.m, language=Matlab]{../assgn_tracking.m}
+
+
+
+
+\end{document}
