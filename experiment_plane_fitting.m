@@ -54,6 +54,16 @@ points = composite_3d_points';
 
 %range = [min(min(points(:,1:2))) max(max(points(:,1:2)))]
 range = [-0.5 0.5];
-plot_plane(Planes(:, 1), range); hold on; 
-plot_plane(Planes(:, 2), range);
+
+first_plane_points = points(Assignments == 1, :);
+second_plane_points = points(Assignments == 2, :);
+
+range_first = [min(first_plane_points(:,1)) max(first_plane_points(:,1)) ...
+               min(first_plane_points(:,2)) max(first_plane_points(:,2)) ];
+
+range_second = [min(second_plane_points(:,1)) max(second_plane_points(:,1)) ...
+               min(second_plane_points(:,2)) max(second_plane_points(:,2)) ];
+
+plot_plane(Planes(:, 1), range_first); hold on; 
+plot_plane(Planes(:, 2), range_second);
 plot3(points(:,1), points(:,2), points(:,3), 'k.', 'MarkerSize', 0.1);

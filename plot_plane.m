@@ -2,17 +2,21 @@ function [  ] = plot_plane( normal, range, figure_handle )
 %PLOT_PLANE Summary of this function goes here
 %   Detailed explanation goes here
 if nargin < 2
-    range =   [-10, 10];
+    range =   [-10, 10, -10, 10];
 end
 
 if nargin < 3
     figure_handle = gcf;
 end
 
-min_val = range(1);
-max_val = range(2);
+x_min_val = range(1);
+x_max_val = range(2);
+y_min_val = range(3);
+y_max_val = range(4);
 
-[xx, yy]= ndgrid(min_val:0.1:max_val, min_val:0.1:max_val);
+step = 0.01;
+
+[xx, yy]= ndgrid(x_min_val:step:x_max_val, y_min_val:step:y_max_val);
 
 d = normal(4);
 
