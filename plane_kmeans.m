@@ -16,9 +16,7 @@ while iterations > 0
     restart = false;
     
     dist = abs(points * P(1:3, :) + repmat(P(4, :), d_size, 1));
-    [~, I] = min(dist, [], 2);
-    Assignments = I;
-    Distances = dist(I);
+    [Distances, Assignments] = min(dist, [], 2);
     
     for i=1:planes_k,
         a = sum(Assignments == i) / d_size;
