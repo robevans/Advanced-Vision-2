@@ -1,5 +1,5 @@
 function [ whole_box_mask ] = get_box_mask( frame )
-%GET_BOX_MASK Extracts mask for box region from the image
+%GET_BOX_MASK Extracts mask that covers box region in the image
 
 % Convert to chromaticity
 frame_ch = convertToChromaticity(frame(:,:,4:6));

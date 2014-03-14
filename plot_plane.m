@@ -1,6 +1,5 @@
 function [  ] = plot_plane( normal, range, figure_handle )
-%PLOT_PLANE Summary of this function goes here
-%   Detailed explanation goes here
+%PLOT_PLANE plots the plane with the given normal in 3D space.
 if nargin < 2
     range =   [-10, 10, -10, 10];
 end
@@ -30,7 +29,6 @@ surf(xx, yy, z)
 xlabel('x')
 ylabel('y')
 zlabel('z')
-
 
 end
 

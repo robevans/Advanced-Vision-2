@@ -20,7 +20,7 @@ while iterations > 0
     
     for i=1:planes_k,
         a = sum(Assignments == i) / d_size;
-        fprintf('Percentage of points in plane %d : %f\n', i, a);
+        fprintf('Percentage of points in plane %d : %.1f%%\n', i, a*100);
         if a == 1.0 || a == 0.0,
             P = rand(4, planes_k);
             restart = true;
