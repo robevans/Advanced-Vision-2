@@ -40,7 +40,6 @@ TTf = TTe;
 TR = (TRf + TRe*10) / 11;
 TT = (TTf + TTe*10) / 11;
 
-
 transformed_box_3d_points ...
  = TR * box_3d_points + repmat(TT, 1, length(box_3d_points));
 
@@ -52,6 +51,9 @@ end
 
 points = composite_3d_points';
 [Planes, Assignments ] = plane_kmeans(points, 2, 10 );
-plot_plane(Planes(:, 1)); hold on; 
-plot_plane(Planes(:, 2));
+
+%range = [min(min(points(:,1:2))) max(max(points(:,1:2)))]
+range = [-0.5 0.5];
+plot_plane(Planes(:, 1), range); hold on; 
+plot_plane(Planes(:, 2), range);
 plot3(points(:,1), points(:,2), points(:,3), 'k.', 'MarkerSize', 0.1);
