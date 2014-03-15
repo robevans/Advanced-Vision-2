@@ -47,7 +47,7 @@ while iterations > 0
         XYZ0 = bsxfun(@minus, XYZ, cm);
         [U, S, V] = svd(XYZ0, 0);
         n = V(:,3);
-        n(4) = -cm * n;
+        n(4) = -cm * (n/norm(n));
         P(:, i) = n;
         %P(:, i) = null( plane_points, 'r');    
     end
