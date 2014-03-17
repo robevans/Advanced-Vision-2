@@ -29,3 +29,6 @@ for i=1:20
     
     pause
 end
+
+[ ~, Angle] = fit_planes_on_composite_dataset( composite_3d_points );
+fprintf('Angle between two planes: %f\n', Angle);
