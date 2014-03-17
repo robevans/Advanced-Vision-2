@@ -1,6 +1,7 @@
 function [ Planes, Assignments ] = plane_kmeans( points, planes_k, iterations, error_threshold )
-%PLANE_KMEANS Summary of this function goes here
-%   Detailed explanation goes here
+%PLANE_KMEANS Fit k planes to point data using kmeans approach of assigning
+%points to closest plane and then refitting it.
+
 if nargin < 4
     error_threshold = 20000;
 end
@@ -13,14 +14,17 @@ iterations_start = iterations;
 
 Assignments = ones(length(points), 1);
 Distances = zeros(length(points), 1);
-%points = [points, ones(length(points), 1)];
 
 while iterations > 0
     restart = false;
     
+    %dot product of plane normal vector and point - results in 
+    %distance of plane to the point
     dist = abs(points * P(1:3, :) + repmat(P(4, :), d_size, 1));
     [Distances, Assignments] = min(dist, [], 2);
     
+    %if any of the planes have all of the points restart algorithm - 
+    %it means that initialization was bad.
     for i=1:planes_k,
         a = sum(Assignments == i) / d_size;
         fprintf('Percentage of points in plane %d : %.1f%%\n', i, a*100);
@@ -38,29 +42,34 @@ while iterations > 0
     
     for i=1:planes_k,
         plane_points = points(Assignments == i, :);
+        
+        %if not points are assigned to plane, scip the calculation
         if isempty(plane_points),
             continue
         end
-        %plane_normal = P(:, i);
-        %[plane, fit] = fitplane(plane_points);
+        
         XYZ = plane_points;
         cm = mean(XYZ, 1);
 
-        % subtract off the column means
+        % subtract off the column means to improve fitting
         XYZ0 = bsxfun(@minus, XYZ, cm);
         [U, S, V] = svd(XYZ0, 0);
+        
+        %normal vector
         n = V(:,3);
+        
+        %calculate d parameter for plane
         n(4) = -cm * (n/norm(n));
         P(:, i) = n;
-        %P(:, i) = null( plane_points, 'r');    
     end
     
     iterations = iterations - 1;
     
+    %if global error is too large - restart
     if sum(Distances) > error_threshold && iterations == 0,
-    P = rand(4, planes_k);
-    iterations = iterations_start;
-    fprintf('Error too large - restarting %f\n', sum(Distances));
+        P = rand(4, planes_k);
+        iterations = iterations_start;
+        fprintf('Error too large - restarting %f\n', sum(Distances));
     end
 end
 
