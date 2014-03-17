@@ -1,3 +1,5 @@
+% Script to produce evaluation images
+
 clearvars, close all
 load kinect_recyclebox_20frames
 
@@ -18,6 +20,9 @@ composite_3d_points = foundation_box_3d_points;
 
 for i=1:20
     if i == foundation_frame_index,
+        %evaluationFigure1depth(composite_3d_points,  'part1', 0 );
+        %evaluationFigure1colour(composite_3d_points, 'part1c', 0);
+        evaluationFigure2colour(composite_3d_points, 'part2', 0);
         continue
     end
     
@@ -42,8 +47,9 @@ for i=1:20
     % Add the transformed points to the set of points from all frames.
     composite_3d_points = [composite_3d_points box_3d_points];
     
-    save_figure_bin_depth_points(composite_3d_points,  'part1', i );
-    save_figure_bin_rgb_depth_points(composite_3d_points, 'part1c', i);
+    %evaluationFigure1depth(composite_3d_points,  'part1', i );
+    %evaluationFigure1colour(composite_3d_points, 'part1c', i);
+    evaluationFigure2colour(composite_3d_points, 'part2', i);
 end
 
 

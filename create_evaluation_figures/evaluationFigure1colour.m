@@ -1,6 +1,5 @@
-
-function [ output_args ] = save_figure_bin_rgb_depth_points(frame,  prefix, number )
-
+function evaluationFigure1colour(frame,  prefix, number )
+% produces images for the coloured range points showing both the frontal view and also the top view of the box
 
 rgbd_points = frame';
 set(0,'DefaultFigureRenderer','opengl')
@@ -18,7 +17,7 @@ colormap(gca,rgbd_points(:,4:6)/255);
 view(0, 90)
 axis('tight');
 axis off;
-saveas(h, strcat('figures/', prefix,'_', int2str(number), '_rgb_depth_image_side'), 'epsc');
+saveas(h, strcat('figures/', prefix,'_', int2str(number), '_side_rgb_depth_image'), 'epsc');
 
 close all;
 h =  figure('Visible','Off');
@@ -27,6 +26,6 @@ colormap(gca,rgbd_points(:,4:6)/255);
 view(0, 0)
 axis('tight');
 axis off;
-saveas(h, strcat('figures/', prefix,'_', int2str(number), '_rgb_depth_image_top'), 'epsc');
+saveas(h, strcat('figures/', prefix,'_', int2str(number), '_top_rgb_depth_image'), 'epsc');
 end
 
