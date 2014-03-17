@@ -24,7 +24,7 @@ while iterations > 0
     for i=1:planes_k,
         a = sum(Assignments == i) / d_size;
         fprintf('Percentage of points in plane %d : %.1f%%\n', i, a*100);
-        if a == 1.0 || a == 0.0,
+        if (a == 1.0 || a == 0.0) && planes_k > 1,
             P = rand(4, planes_k);
             restart = true;
             iterations = iterations_start;
@@ -67,6 +67,7 @@ end
 Planes = P;
 
 fprintf('Total plane fitting error %f\n', sum(Distances));
+fprintf('Total plane average fitting error %f\n', mean(Distances));
 
 end
 

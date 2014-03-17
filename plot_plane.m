@@ -24,7 +24,7 @@ z = (-normal(1)*xx - normal(2)*yy - d)/normal(3);
 
 % plot the surface
 figure(figure_handle)
-surf(xx, yy, z)
+surf(xx, yy, z,'LineStyle','none')
 
 xlabel('x')
 ylabel('y')
