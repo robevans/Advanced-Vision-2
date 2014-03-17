@@ -1,6 +1,9 @@
-function [ Planes, Assignments ] = plane_kmeans( points, planes_k, iterations )
+function [ Planes, Assignments ] = plane_kmeans( points, planes_k, iterations, error_threshold )
 %PLANE_KMEANS Summary of this function goes here
 %   Detailed explanation goes here
+if nargin < 4
+    error_threshold = 20000;
+end
 
 d_size = length(points);
 
@@ -54,10 +57,10 @@ while iterations > 0
     
     iterations = iterations - 1;
     
-    if sum(Distances) > 20000 && iterations == 0,
+    if sum(Distances) > error_threshold && iterations == 0,
     P = rand(4, planes_k);
     iterations = iterations_start;
-    disp('Error too large - restarting');
+    fprintf('Error too large - restarting %f\n', sum(Distances));
     end
 end
 
