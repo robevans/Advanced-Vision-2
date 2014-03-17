@@ -1,5 +1,5 @@
-clearvars, close all
-load kinect_recyclebox_20frames
+%clearvars, close all
+%load kinect_recyclebox_20frames
 frames = kinect_recyclebox_20frames;
 
 % Extract information from foundation frame
@@ -23,9 +23,9 @@ for i=1:20
     figure(2)
     imshow( uint8(bin_points(:,:,4:6)) ) % bin 2D points
     figure(3)
-    show_scatter_image( bin_points )% bin 3D points
+    show_scatter_image( bin_points, 3 ) % bin 3D points
     figure(4)
-    
+    display_textured_scatter_plot(composite_3d_points', 4); % Coloured 3D bin points from all frames
     
     pause
 end
