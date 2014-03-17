@@ -1,5 +1,5 @@
 
-function [ output_args ] = show_scatter_image( frame )
+function show_scatter_image( frame )
 %SHOW_SCATTER_IMAGE Summary of this function goes here
 %   Detailed explanation goes here
 
