@@ -2,15 +2,16 @@ clearvars, close all
 %% MAIN SCRIPT TO RUN ASSIGNMENT
 % Set parameters below to show demo or evaluation images. (Showing both at
 % once is not recommended)
-show_demo_images = 1;
-save_evaluation_images = 0;
+show_demo_images = 0;
+save_evaluation_images = 1;
 
 % Load data frames
 load kinect_recyclebox_20frames
 frames = kinect_recyclebox_20frames;
 
 % Extract information from foundation frame
-[foundationFrameEdges, composite_3d_points] = process_foundation_frame( frames{floor( length(frames)/2 )} );
+foundation_frame_index = floor( length(frames)/2 );
+[foundationFrameEdges, composite_3d_points] = process_foundation_frame( frames{foundation_frame_index} );
 
 if save_evaluation_images
     evaluationPart1_range(composite_3d_points,  'part1_range', 0);
@@ -19,6 +20,9 @@ if save_evaluation_images
 end
 
 for i=1:20
+    if i == foundation_frame_index,
+        continue
+    end
     
     % Load image
     frame = frames{i};
@@ -47,6 +51,7 @@ for i=1:20
         evaluationPart1_range(composite_3d_points,  'part1_range', i );
         evaluationPart1_colour(composite_3d_points, 'part1_color', i);
         evaluationPart2(composite_3d_points, 'part2', i);
+        close all
     end
     
 end
@@ -54,7 +59,9 @@ end
 if save_evaluation_images
     evaluationPart3;
     evaluationPart4;
+    
+    % Fit two planes to data and compute the angle between them
+    [ ~, Angle] = fit_planes_on_composite_dataset( composite_3d_points );
+    fprintf('Angle between two planes: %f\n', Angle);
 end
 
-[ ~, Angle] = fit_planes_on_composite_dataset( composite_3d_points );
-fprintf('Angle between two planes: %f\n', Angle);

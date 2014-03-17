@@ -13,7 +13,7 @@ colormap(gca,rgbd_points(:,4:6)/255);
 view(0, 90)
 axis('tight');
 axis off;
-saveas(h, strcat('figures/', prefix,'_', int2str(number), '_side_rgb_depth_image'), 'bmp');
+saveas(h, strcat('figures/', prefix,'_', int2str(number), '_side'), 'bmp');
 
 % Display and save the coloured point cloud of the side view of box
 h =  figure('Visible','On');
@@ -22,6 +22,6 @@ colormap(gca,rgbd_points(:,4:6)/255);
 view(0, 0)
 axis('tight');
 axis off;
-saveas(h, strcat('figures/', prefix,'_', int2str(number), '_top_rgb_depth_image'), 'bmp');
+saveas(h, strcat('figures/', prefix,'_', int2str(number), '_top'), 'bmp');
 end
 

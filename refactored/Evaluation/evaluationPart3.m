@@ -8,10 +8,22 @@ load kinect_recyclebox_20frames
 
 frames = kinect_recyclebox_20frames;
 
-% Extract information from foundation frame
-[foundationFrameEdges, composite_3d_points] = process_foundation_frame( frames{floor( length(frames)/2 )} );
+foundation_frame_index = floor(length(frames) / 2);
+foundation_frame = frames{foundation_frame_index};
+
+foundation_box_mask = get_box_mask(foundation_frame);
+
+foundation_edges_mask = get_box_edges(foundation_frame, ...
+    foundation_box_mask);
+
+foundation_edge_point_list = get_point_list(foundation_frame, foundation_edges_mask);
+
+foundation_box_3d_points = get_point_list(foundation_frame, foundation_box_mask);
+composite_3d_points = foundation_box_3d_points;
+
 
 [Planes, Assignments ] = plane_kmeans(foundation_box_3d_points(1:3, :)', 2, 10, 200 );
+    
 first_plane_points = foundation_box_3d_points(:, Assignments == 1);
 second_plane_points = foundation_box_3d_points(:, Assignments == 2);
 
@@ -31,15 +43,26 @@ for i=1:20
     % Load image
     frame = frames{i};
     
-    % Extract bin
-    bin_mask = get_box_mask( frame );
-    bin_points = repmat(bin_mask, 1, 1, 6) .* frame;
+    % Extract the box
+    box_mask = get_box_mask(frame);
     
-    % Align bin points from current frame with foundation frame
-    composite_3d_points = alignPointsToFoundationFrame(frame, foundationFrameEdges, composite_3d_points);
+    % Run an edge detector on the extracted box
+    edges_mask = get_box_edges(frame, box_mask);
     
+    edge_point_list = get_point_list(frame, edges_mask);
+    box_3d_points = get_point_list(frame, box_mask);
+    
+    % Estimate the transformation between the box in the current frame and the foundation frame.
+    [TR, TT] = icp(foundation_edge_point_list(1:3,:), edge_point_list(1:3,:), 100, 'Matching', 'kDtree');
+    
+    % Apply transformation to register box points to the foundation frame.
+    box_3d_points(1:3,:) = TR * box_3d_points(1:3,:) + repmat(TT, 1, length(box_3d_points(1:3,:)));
+    
+    
+    composite_3d_points = box_3d_points;
     depth_points = composite_3d_points(1:3,:)';
     
+    %depth_points = box_3d_points';
     [Planes, Assignments ] = plane_kmeans(depth_points, 2, 10, 300 );
     
     first_plane_points = composite_3d_points(:, Assignments == 1);
@@ -60,6 +83,14 @@ for i=1:20
         chosen_plane = 2;
     end
     
+    
+    
+    %
+    %hold on;
+    %plot3(depth_points(:,1), depth_points(:,2), depth_points(:,3), 'k.', 'MarkerSize', 0.1);
+    %plot_plane(Planes(:, chosen_plane), range(chosen_plane, :));
+    %hold off;
+    
     a = foundation_right_plane_normal;
     b = Planes(:, chosen_plane);
     costheta = dot(a,b)/(norm(a)*norm(b));
@@ -71,10 +102,8 @@ end
 angles_degrees = radtodeg(angles(:, 2));
 angles_degrees( angles_degrees > 90 ) =  180 - angles_degrees( angles_degrees > 90 );
 
-angles_degrees;
-
 % Output final results
-evaluationPart3_average = mean(angles_degrees)
-evaluationPart3_std = std(angles_degrees)
+evaluationPart3_average_angle = mean(angles_degrees)
+evaluationPart3_std_angles = std(angles_degrees)
 
 
