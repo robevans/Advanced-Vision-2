@@ -2,8 +2,8 @@ clearvars, close all
 %% MAIN SCRIPT TO RUN ASSIGNMENT
 % Set parameters below to show demo or evaluation images. (Showing both at
 % once is not recommended)
-show_demo_images = 0;
-save_evaluation_images = 1;
+show_demo_images = 1;
+save_evaluation_images = 0;
 
 % Load data frames
 load kinect_recyclebox_20frames
@@ -57,11 +57,13 @@ for i=1:20
 end
 
 if save_evaluation_images
-    evaluationPart3;
-    evaluationPart4;
+    [average_angle, std_angles] = evaluationPart3(frames);
+    evaluationPart4(frames);
     
     % Fit two planes to data and compute the angle between them
     [ ~, Angle] = fit_planes_on_composite_dataset( composite_3d_points );
     fprintf('Angle between two planes: %f\n', Angle);
+    
+    fprintf('Average angle between planes and foundation frame plane: %f with std: %f\n', average_angle, std_angles);
 end
 

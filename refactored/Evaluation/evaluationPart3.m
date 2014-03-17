@@ -1,12 +1,8 @@
-% Extracts the surface normal of each of the rightward facing planes from the 20 images. Invert
+function [average_angle, std_angles] = evaluationPart3(frames)
+% Extracts the surface normal of each of the rightward facing planes from the 20 images. Inverts
 % if necessary to make sure that they are all facing towards the viewer. After applying
-% the registration transformation to each, compute the angle between each vector and the
-% ‘Foundation’ image’s vector. Reports the average and standard deviation of the angles.
-
-clearvars, close all
-load kinect_recyclebox_20frames
-
-frames = kinect_recyclebox_20frames;
+% the registration transformation to each, computes the angle between each vector and the
+% ‘Foundation’ image’s vector. Returns the average and standard deviation of the angles.
 
 foundation_frame_index = floor(length(frames) / 2);
 foundation_frame = frames{foundation_frame_index};
@@ -103,7 +99,7 @@ angles_degrees = radtodeg(angles(:, 2));
 angles_degrees( angles_degrees > 90 ) =  180 - angles_degrees( angles_degrees > 90 );
 
 % Output final results
-evaluationPart3_average_angle = mean(angles_degrees)
-evaluationPart3_std_angles = std(angles_degrees)
-
+average_angle = mean(angles_degrees);
+std_angles = std(angles_degrees);
+end
 

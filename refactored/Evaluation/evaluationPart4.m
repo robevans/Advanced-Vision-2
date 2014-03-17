@@ -1,13 +1,9 @@
+function evaluationPart4(frames)
 % 1) After each merging, creates a bounding box around the rightmost merged white S and square.
 % 2) Extracts the 3D points from that merged set.
 % 3) Fits a plane to the point set.
 % 4) Computes the average absolute value of the distance of each datapoint from that plane.
 % 5) Plots these average distances as a function of the number of planes added.
-
-clearvars, close all
-load kinect_recyclebox_20frames
-
-frames = kinect_recyclebox_20frames;
 
 foundation_frame_index = floor(length(frames) / 2);
 foundation_frame = frames{foundation_frame_index};
@@ -73,4 +69,4 @@ for i=1:20
 end
 
 plot(plane_fitting_absolute_mean_error);
-
+end
