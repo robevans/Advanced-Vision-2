@@ -132,6 +132,28 @@ to find cases when initialization was definitely wrong.
 
 \section{Results}
 
+\subsection{Dataset merging}
+
+\subsection{Alignment accuracy}
+
+\subsection{Plane fitting}
+
+\section{Discussion}
+ICP and plane fitting algorithms in most cases 
+worked without problems. K-means sometimes suffered
+from poor initialization but that is easy to 
+fix giving just a few checks of total
+absolute error. The trickiest part is initial box
+region detection. Finetuning color thresholds is tedious
+process and always captures some artefacts around the box
+that might have impact in later stages.
+
+One of possible techniques to try for box detection
+would be a probabilistic modelling - it might be possible
+to detect background from whole series of frames
+and then use it on each frame individually. 
+We haven't tried this and just sticked with
+easy to implement approach that works good enough.
 
 \begin{thebibliography}{9}
   
