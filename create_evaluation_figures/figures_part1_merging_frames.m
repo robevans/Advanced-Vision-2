@@ -1,4 +1,4 @@
-% Script to produce evaluation images
+% Script to produce evaluation images for report
 
 clearvars, close all
 load kinect_recyclebox_20frames
