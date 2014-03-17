@@ -11,7 +11,7 @@ S = ones(length(rgbd_points),1) * markerSize;
 fh = createfigure(rgbd_points(:,1),rgbd_points(:,2),rgbd_points(:,3),S(:),1:length(rgbd_points), rgbd_points(:,4:6)/255);
 
 % Save image
-saveas(fh, strcat('figures/', prefix,'_', int2str(number), '_left_square'), 'epsc');
+saveas(fh, strcat('figures/', prefix,'_', int2str(number), '_left_square'), 'bmp');
 end
 
 function figHandle = createfigure(X1, Y1, Z1, S1, C1, CM)
@@ -21,7 +21,7 @@ function figHandle = createfigure(X1, Y1, Z1, S1, C1, CM)
 
 % Create figure
 figHandle = figure('Renderer','OpenGL',...
-    'Colormap',CM,'Visible','Off');
+    'Colormap',CM,'Visible','On');
 % Create axes
 axes1 = axes('Visible','off','Parent',figHandle);
 % Preserve the XYZ-limits of the axes

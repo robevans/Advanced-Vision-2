@@ -18,11 +18,13 @@ foundation_edge_point_list = get_point_list(foundation_frame, foundation_edges_m
 foundation_box_3d_points = get_point_list(foundation_frame, foundation_box_mask);
 composite_3d_points = foundation_box_3d_points;
 
+% Save figure for foundation frame
+%evaluationFigure1depth(composite_3d_points,  'part1', 0 );
+%evaluationFigure1colour(composite_3d_points, 'part1c', 0);
+evaluationFigure2colour(composite_3d_points, 'part2', 0);
+
 for i=1:20
     if i == foundation_frame_index,
-        %evaluationFigure1depth(composite_3d_points,  'part1', 0 );
-        %evaluationFigure1colour(composite_3d_points, 'part1c', 0);
-        evaluationFigure2colour(composite_3d_points, 'part2', 0);
         continue
     end
     
