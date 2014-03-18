@@ -4,7 +4,7 @@ function [ Planes, Angle ] = fit_planes_on_composite_dataset( composite_3d_point
 
 depth_points = composite_3d_points(1:3,:)';
 
-[Planes, ~ ] = plane_kmeans(depth_points, 2, 10, 300 );
+[Planes, ~ ] = plane_kmeans(depth_points, 2, 10 );
 
 a = Planes(:, 1);
 b = Planes(:, 2);
