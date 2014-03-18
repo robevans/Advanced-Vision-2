@@ -8,7 +8,7 @@
 \usepackage{graphicx}
 \usepackage{subfigure}
 %\usepackage{savetrees}
-%\usepackage[margin=1.0in]{geometry}
+\usepackage[margin=1.0in]{geometry}
 
 
 % Default fixed font does not support bold face
@@ -75,12 +75,20 @@ steps:
 Each of the steps are described below.
 
 \subsection{Box extraction}
-To extract box we used the fact that it has two orange regions.
+To extract box\ref{fig:extracted_box_example} we used the fact that it has two orange regions.
 We found bottom orange region of the box and then took all of the
 pixels above it. After extracting these points from image, we 
 intersected them with depth information - we removed part of
 pixels that are above top orange region using the fact that above
 the box all of the depth values are NaN.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figs/extracted_box_example}
+  \caption{Extracted box example}
+  \label{fig:extracted_box_example}
+\end{figure}
+
 
 For actual region lookup, basic color thresholding was used
 since orange region had very distinguishable color. Before 
@@ -91,6 +99,28 @@ the frame. After these stops two big regions of
 orange were found and we took the biggest one
 since bottom region is always the biggest (later it 
 even gets truncated because box gets out of frame).
+
+\begin{figure}[h!]
+    \centering
+      \subfigure[RGB image converted to chromaticity coordinates]{
+        \includegraphics[width=0.4\linewidth]{figs/full_chromaticity_image}
+        \label{fig:full_chromaticity_image}
+      }
+      \subfigure[Depth points of the frame]{
+        \includegraphics[width=0.4\linewidth]{figs/full_depth_data_picture}
+        \label{fig:full_depth_data_picture}
+      }
+      \quad
+      \subfigure[Thresholding colors to find orange regions]{
+        \includegraphics[width=0.4\linewidth]{figs/thresholding_result}
+        \label{fig:thresholding_result}
+      }
+      \subfigure[Detected bottom region mask]{
+        \includegraphics[width=0.4\linewidth]{figs/detected_bottom_orange_region_mask}
+        \label{fig:detected_bottom_orange_region_mask}
+      }
+      \caption{Box extraction steps}
+\end{figure}
 
 Colors for region thresholding we fine-tuned manually.
 
