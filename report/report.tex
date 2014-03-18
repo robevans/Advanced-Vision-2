@@ -62,7 +62,16 @@ each phase of processing:
 \end{itemize}
 
 \subsection{Box extraction}
-To extract the bin\ref{fig:extracted_box_example} we used the fact that it has two orange regions.  We first converted the image to a chromaticity image to reduce the effect of lighting changes throughout the sequence, and smoothed the image with a gaussian filter to remove noise.  We 
+To extract the bin\ref{fig:extracted_box_example} we used a series of techniques on the colour and depth data.  We first converted the RGB image to a chromaticity image to reduce the effect of lighting changes throughout the sequence, and smoothed that image with a gaussian filter to remove noise.  An example image of this stage is shown in figure \ref{full_chromaticity_image}.  
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figs/full_chromaticity_image}
+  \caption{Smoothed chromaticity image}
+  \label{full_chromaticity_image}
+\end{figure}
+
+We 
 We found bottom orange region of the box and then took all of the
 pixels above it. After extracting these points from image, we 
 intersected them with depth information - we removed part of
