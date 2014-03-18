@@ -7,6 +7,7 @@
 \usepackage[UKenglish]{babel}
 \usepackage{graphicx}
 \usepackage{subfigure}
+\usepackage[font={it}]{caption}
 
 % Spaced paragraphs
 \setlength{\parindent}{0.0in}
@@ -108,15 +109,15 @@ The final image in figure \ref{fig:extracted_box_example} shows some noise aroun
 
 \begin{figure}[!ht]
     \centering
-      \subfigure[Depth point data from single frame]{
+      \subfigure[Depth point data from single frame.]{
         \includegraphics[width=0.475\linewidth]{figs/depth_points_example}
         \label{fig:depth_points_example}
       }
-      \subfigure[Coloured depth points]{
+      \subfigure[Coloured depth points.]{
         \includegraphics[width=0.475\linewidth]{figs/coloured_depth_points}
         \label{fig:coloured_depth_points}
       }
-      \caption{Extracted box examples}
+      \caption{3D Points of extracted bin.}
 \end{figure}
 
 \subsection{Point Alignment}
@@ -137,11 +138,11 @@ We took the 3D points corresponding to the detected greyscale edges and used the
 
 \begin{figure}[!ht]
     \centering
-      \subfigure[ICP alignment with edge points - top view]{
+      \subfigure[ICP alignment with edge points - top view.]{
         \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_side}
         \label{fig:icp_before_alignment_from_side}
       }
-      \subfigure[ICP alignment with edge points - side view]{
+      \subfigure[ICP alignment with edge points - side view.]{
         \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_top}
         \label{fig:icp_before_alignment_from_top}
       }
@@ -154,12 +155,12 @@ We found that aligning with the edges alone produced good results, and we did no
 
 \begin{figure}[!ht]	
     \centering
-      \subfigure[Depth point alignment using ICP transformations estimated only with edge points]{
+      \subfigure[Depth point alignment using ICP transformations estimated only with edge points.]{
         \includegraphics[width=0.475\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
         \label{fig:depth_points_after_edge_point_icp_alignment_ok}
       }
       \subfigure[Depth point alignment using ICP transformations estimated with 
-      weighted edge points and full point set]{
+      weighted edge points and full point set.]{
         \includegraphics[width=0.475\linewidth]{figs/depth_points_after_full_point_icp_alignment_ok}
         \label{fig:depth_points_after_full_point_icp_alignment_ok}
       }
@@ -170,15 +171,15 @@ We found that aligning with the edges alone produced good results, and we did no
 \subsection{Plane Fitting}
 For plane extraction we chose to implement modified K-means algorithm.
 It uses plane's normal vector $\vec{n}$  and data point $ (x,y,z) $
-dot product as a distance measure. In maximization step it refits
+dot product as a distance measure. In maximisation step it refits
 plane on assigned data points for each plane
- using SVD (as given in "fitplane.m"
-algorithm"). Code can be found in appendix \ref{apen:code_in}.
+ using SVD (as given in ``fitplane.m"
+algorithm). Code can be found in appendix \ref{apen:code_in}.
 
 This approach easily allowed to fit data points to any of number of
 planes that was required though it is prone (as regular K-mean is)
-to initialization. To cope with this, thresholds were introduced
-to find cases when initialization was definitely wrong.
+to initialisation. To cope with this, thresholds were introduced
+to find cases when initialisation was definitely wrong.
 
 
 \begin{figure}[!ht]
