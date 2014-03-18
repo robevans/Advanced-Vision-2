@@ -69,7 +69,7 @@ To extract the bin we used a series of techniques on the colour and depth data. 
 
 We manually thresholded the smoothed chromaticity image, using separate thresholds for each of the three colour channels, to detect the orange regions.  The output from this stage is shown in figure \ref{fig:thresholding_result}.
 
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
       \subfigure[RGB image converted to chromaticity coordinates and smoothed.]{
         \includegraphics[width=0.45\linewidth]{figs/full_chromaticity_image}
@@ -105,9 +105,7 @@ This technique worked well for the frames in the dataset, although it relied on 
 
 The final image in figure \ref{fig:extracted_box_example} shows some noise around the box.  We tried removing this by using thresholds on the box pixels.  The noise could be removed quite effectively for individual frames, but no static threshold values worked over the whole sequence.  Adaptive thresholding could be used to deal with this, but we decided that the resulting box extraction was good enough for our purposes.
 
-
-
-\begin{figure}[!ht]
+\begin{figure}[!h]
     \centering
       \subfigure[Depth point data from single frame.]{
         \includegraphics[width=0.475\linewidth]{figs/depth_points_example}
@@ -127,16 +125,14 @@ from the sequence as our foundation frame, against which we aligned all other fr
 To align points for different frames we used the ICP algorithm
 linked to in the assignment.  Because the plane points are not very distinctive, we used the edge points for alignment.  We detected the edges using Canny edge detection on the extracted RGB box pixels, converted to greyscale.  We tuned the edge detector parameters to ensure that only the main edges of the box were detected, as in figure \ref{fig:extracted_edge_mask}.
 
-\begin{figure}[!ht]
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.5\textwidth]{figs/extracted_edge_mask}
   \caption{Extracted edges for ICP alignment}
   \label{fig:extracted_edge_mask}
 \end{figure}
 
-We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and\ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
-
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
       \subfigure[ICP alignment with edge points - top view.]{
         \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_side}
@@ -149,11 +145,11 @@ We took the 3D points corresponding to the detected greyscale edges and used the
       \caption{ICP alignment.  The foundation frame is black.  The current frame is shown in green prior to alignment and blue after alignment.}
 \end{figure}
 
+We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and\ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
+
 We found that aligning with the edges alone produced good results, and we did not see an improvement when using all the points in the bin.  Figure \ref{fig:depth_points_after_edge_point_icp_alignment_ok} shows the results of an alignment with just edge points, while figure \ref{fig:depth_points_after_full_point_icp_alignment_ok} shows the alignment using a combined transformation from edge points and all the points.  There was no clear visual difference.  Using the edges alone was also much faster than using all the points.
 
-
-
-\begin{figure}[!ht]	
+\begin{figure}[h]	
     \centering
       \subfigure[Depth point alignment using ICP transformations estimated only with edge points.]{
         \includegraphics[width=0.475\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
@@ -168,21 +164,19 @@ We found that aligning with the edges alone produced good results, and we did no
       foundation frame, blue ones are from current frame for alignment and green ones (overlapping with red)
       are blue points after applying transformations estimated with ICP}
 \end{figure}
+
 \subsection{Plane Fitting}
-For plane extraction we chose to implement modified K-means algorithm.
-It uses plane's normal vector $\vec{n}$  and data point $ (x,y,z) $
-dot product as a distance measure. In maximisation step it refits
+For the plane fitting we implemented a modified K-means algorithm.
+It uses the dot product of the the planes' normal vectors $\vec{n}$  plus the data point $ (x,y,z) $ as measure of the distance from the point to the plane. In the maximisation step it refits the
 plane on assigned data points for each plane
  using SVD (as given in ``fitplane.m"
 algorithm). Code can be found in appendix \ref{apen:code_in}.
 
-This approach easily allowed to fit data points to any of number of
-planes that was required though it is prone (as regular K-mean is)
-to initialisation. To cope with this, thresholds were introduced
-to find cases when initialisation was definitely wrong.
+This approach easily allowed us to fit data points to any of number of
+planes.  K-means is sensitive to the initialisation of the means.  A poor initialisation means that the algorithm will not converge to the correct answer.  To cope with this, we introduced thresholds
+to find cases when initialisation was definitely wrong.  For example, if all the points were assigned to one plane we would reinitialise, and if the plane fitting error was too high after convergence we would also reinitialise.  We did the same if the angle between the planes was too far from 90 degrees.  With these measures, the algorithm reliably fits two planes to the composite set of bin points from all frames.
 
-
-\begin{figure}[!ht]
+\begin{figure}[h]
     \centering
       \subfigure[Fitted planes]{
         \includegraphics[width=0.475\linewidth]{figs/fitted_planes_without_points}
@@ -199,7 +193,7 @@ to find cases when initialisation was definitely wrong.
 \subsection{Dataset Merging}
 
 \subsection{Alignment accuracy}
-\begin{figure}[!ht]
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.5\textwidth]{figs/plane_angle_error_versus_foundation_plane}
   \caption{Dependency of frames combinedd and absolute mean distance of every point in "S." region to the plane}
@@ -208,12 +202,11 @@ to find cases when initialisation was definitely wrong.
 \subsection{Plane fitting}
 
 \section{Discussion}
-ICP and plane fitting algorithms in most cases 
-worked without problems. K-means sometimes suffered
-from poor initialization but that is easy to 
-fix giving just a few checks of total
+The ICP and plane fitting algorithms worked without problems in most cases. K-means sometimes suffered
+from poor initialisation but was easy to 
+fix using a few checks of total
 absolute error. The trickiest part is initial box
-region detection. Finetuning color thresholds is tedious
+region detection. Fine-tuning color thresholds is tedious
 process and always captures some artefacts around the box
 that might have impact in later stages.
 
