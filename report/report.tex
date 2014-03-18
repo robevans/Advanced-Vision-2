@@ -54,18 +54,33 @@ showstringspaces=false
 This report covers the construction of a 3D model from a 
 sequence of RGB and depth frames from the Kinect. 
 The algorithms we chose and explored are discussed for
-each phase of processing:
+each phase of processing: 
 \begin{itemize}
-\item extracting the bin from the RGB images and corresponding 3D points.
-\item aligning the extracted bin points from each frame in a single coordinate frame.
-\item combining the aligned bit points into a single dataset and fitting two planes.
+\item extracting the bin from the RGB images and corresponding 3D points
+\item  aligning the extracted bin points from each frame in a single coordinate frame
 \end{itemize}
 
+
+\section{Methods}
+Registering data points into one combined dataset and 
+extracting planes of the sides of the box involved a few 
+steps:
+
+\begin{enumerate}
+  \item Extract points that belong only to the box
+  \item Align the box points with the ones in foundation frame
+  \item Add the points to combined dataset
+  \item Fit the planes to current dataset
+\end{enumerate}
+
+Each of the steps are described below.
+
 \subsection{Box extraction}
-To extract the bin\ref{fig:extracted_box_example} we used the fact that it has two orange regions.  We first converted the image to a chromaticity image to reduce the effect of lighting changes throughout the sequence, and smoothed the image with a gaussian filter to remove noise.  We 
+To extract box (figure \ref{fig:extracted_box_example}) we used the fact that it has two orange regions.
 We found bottom orange region of the box and then took all of the
 pixels above it. After extracting these points from image, we 
-intersected them with depth information - we removed part of
+intersected them with depth information (figure \ref{fig:full_depth_data_picture})
+ - we removed part of
 pixels that are above top orange region using the fact that above
 the box all of the depth values are NaN.
 
@@ -80,12 +95,13 @@ the box all of the depth values are NaN.
 For actual region lookup, basic color thresholding was used
 since orange region had very distinguishable color. Before 
 thresholding we converted regular RGB colors
-to chromaticity colors to reduce impact of lighting
+to chromaticity colors (figure \ref{fig:full_chromaticity_image}) to reduce impact of lighting
 and applied gaussian smoothing on pixels of
 the frame. After these stops two big regions of
 orange were found and we took the biggest one
 since bottom region is always the biggest (later it 
 even gets truncated because box gets out of frame).
+Found mask can be seen in figure \ref{fig:detected_bottom_orange_region_mask}.
 
 \begin{figure}[h!]
     \centering
@@ -109,7 +125,7 @@ even gets truncated because box gets out of frame).
       \caption{Box extraction steps}
 \end{figure}
 
-Colours for region thresholding we fine-tuned manually.
+Colors for region thresholding (figure \ref{fig:thresholding_result}) we fine-tuned manually.
 
 
 
