@@ -62,19 +62,10 @@ each phase of processing:
 \end{itemize}
 
 \subsection{Box extraction}
-To extract the bin\ref{fig:extracted_box_example} we used a series of techniques on the colour and depth data.  We first converted the RGB image to a chromaticity image to reduce the effect of lighting changes throughout the sequence, and smoothed that image with a gaussian filter to remove noise.  An example image of this stage is shown in figure \ref{full_chromaticity_image}.  
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=1.0\textwidth]{figs/full_chromaticity_image}
-  \caption{Smoothed chromaticity image}
-  \label{full_chromaticity_image}
-\end{figure}
-
-We 
+To extract box (figure \ref{fig:extracted_box_example}) we used the fact that it has two orange regions.
 We found bottom orange region of the box and then took all of the
 pixels above it. After extracting these points from image, we 
-intersected them with depth information - we removed part of
+intersected them with depth information (figure \ref{fig:full_depth_data_picture}) - we removed part of
 pixels that are above top orange region using the fact that above
 the box all of the depth values are NaN.
 
@@ -89,12 +80,13 @@ the box all of the depth values are NaN.
 For actual region lookup, basic color thresholding was used
 since orange region had very distinguishable color. Before 
 thresholding we converted regular RGB colors
-to chromaticity colors to reduce impact of lighting
+to chromaticity colors (figure \ref{fig:full_chromaticity_image}) to reduce impact of lighting
 and applied gaussian smoothing on pixels of
 the frame. After these stops two big regions of
 orange were found and we took the biggest one
 since bottom region is always the biggest (later it 
 even gets truncated because box gets out of frame).
+Found mask can be seen in figure \ref{fig:detected_bottom_orange_region_mask}.
 
 \begin{figure}[h!]
     \centering
@@ -118,7 +110,7 @@ even gets truncated because box gets out of frame).
       \caption{Box extraction steps}
 \end{figure}
 
-Colours for region thresholding we fine-tuned manually.
+Colours for region thresholding (figure \ref{fig:thresholding_result}) we fine-tuned manually.
 
 
 
