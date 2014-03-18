@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[12pt,a4paper,onecolumn]{article}
 \usepackage{covington}
 \usepackage{comment}
 \usepackage{url}
@@ -7,9 +7,10 @@
 \usepackage[UKenglish]{babel}
 \usepackage{graphicx}
 \usepackage{subfigure}
-%\usepackage{savetrees}
-\usepackage[margin=1.0in]{geometry}
 
+% Spaced paragraphs
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.1in}
 
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
@@ -56,61 +57,52 @@ sequence of RGB and depth frames from the Kinect.
 The algorithms we chose and explored are discussed for
 each phase of processing:
 \begin{itemize}
-\item extracting the bin from the RGB images and corresponding 3D points.
-\item aligning the extracted bin points from each frame in a single coordinate frame.
-\item combining the aligned bit points into a single dataset and fitting two planes.
+\item Extracting the bin from the RGB images and corresponding 3D points.
+\item Aligning the extracted bin points from each frame in a single coordinate frame.
+\item Combining the aligned bin points into a single dataset.
+\item Fitting planes to the sides of the bin.
 \end{itemize}
 
 \subsection{Box extraction}
-To extract box (figure \ref{fig:extracted_box_example}) we used the fact that it has two orange regions.
-We found bottom orange region of the box and then took all of the
-pixels above it. After extracting these points from image, we 
-intersected them with depth information (figure \ref{fig:full_depth_data_picture}) - we removed part of
-pixels that are above top orange region using the fact that above
-the box all of the depth values are NaN.
+To extract the bin we used a series of techniques on the colour and depth data.  We first converted the image to a chromaticity image, and smoothed with a gaussian filter to reduce noise.  This accentuated the orange regions of the box and made them consistent throughout the sequence.  An example image from this stage is shown in figure \ref{fig:full_chromaticity_image}.
+
+We manually thresholded the smoothed chromaticity image, using separate thresholds for each of the three colour channels, to detect the orange regions.  The output from this stage is shown in figure \ref{fig:thresholding_result}.
+
+Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region, producing the image in figure \ref{fig:extracted_box_example}.
+
+This technique worked well for the frames in the dataset, although it relied on knowledge specific to that dataset, such as the largest orange regions belonging to the box, and the box being isolated in the depth image.
+
+The final image in figure \ref{fig:extracted_box_example} shows some noise around the box.  We tried removing this by using thresholds on the box pixels.  The noise could be removed quite effectively for individual frames, but no static threshold values worked over the whole sequence.  Adaptive thresholding could be used to deal with this, but we decided that the resulting box extraction was good enough for our purposes.
+
+\begin{figure}[h!]
+    \centering
+      \subfigure[RGB image converted to chromaticity coordinates and smoothed.]{
+        \includegraphics[width=0.4\linewidth]{figs/full_chromaticity_image}
+        \label{fig:full_chromaticity_image}
+      }
+      \quad
+      \subfigure[Thresholding colours to find orange regions.]{
+        \includegraphics[width=0.4\linewidth]{figs/thresholding_result}
+        \label{fig:thresholding_result}
+      }
+
+        \subfigure[Depth image.]{
+        \includegraphics[width=0.4\linewidth]{figs/full_depth_data_picture}
+        \label{fig:full_depth_data_picture}
+      }
+      \subfigure[Detected bottom of the bin.]{
+        \includegraphics[width=0.4\linewidth]{figs/detected_bottom_orange_region_mask}
+        \label{fig:detected_bottom_orange_region_mask}
+      }
+      \caption{Box extraction stages.}
+\end{figure}
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=1.0\textwidth]{figs/extracted_box_example}
-  \caption{Extracted box example}
+  \caption{Final extracted box for one frame.}
   \label{fig:extracted_box_example}
 \end{figure}
-
-
-For actual region lookup, basic color thresholding was used
-since orange region had very distinguishable color. Before 
-thresholding we converted regular RGB colors
-to chromaticity colors (figure \ref{fig:full_chromaticity_image}) to reduce impact of lighting
-and applied gaussian smoothing on pixels of
-the frame. After these stops two big regions of
-orange were found and we took the biggest one
-since bottom region is always the biggest (later it 
-even gets truncated because box gets out of frame).
-Found mask can be seen in figure \ref{fig:detected_bottom_orange_region_mask}.
-
-\begin{figure}[h!]
-    \centering
-      \subfigure[RGB image converted to chromaticity coordinates]{
-        \includegraphics[width=0.4\linewidth]{figs/full_chromaticity_image}
-        \label{fig:full_chromaticity_image}
-      }
-      \subfigure[Depth points of the frame]{
-        \includegraphics[width=0.4\linewidth]{figs/full_depth_data_picture}
-        \label{fig:full_depth_data_picture}
-      }
-      \quad
-      \subfigure[Thresholding colors to find orange regions]{
-        \includegraphics[width=0.4\linewidth]{figs/thresholding_result}
-        \label{fig:thresholding_result}
-      }
-      \subfigure[Detected bottom region mask]{
-        \includegraphics[width=0.4\linewidth]{figs/detected_bottom_orange_region_mask}
-        \label{fig:detected_bottom_orange_region_mask}
-      }
-      \caption{Box extraction steps}
-\end{figure}
-
-Colours for region thresholding (figure \ref{fig:thresholding_result}) we fine-tuned manually.
 
 
 
@@ -126,8 +118,6 @@ Colours for region thresholding (figure \ref{fig:thresholding_result}) we fine-t
       }
       \caption{Extracted box examples}
 \end{figure}
-
-Extracted coloured 
 
 \subsection{Point alignment}
 As was suggested in the assignment we took middle frame
@@ -184,7 +174,7 @@ and
       \caption{ICP alignment examples}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[h!]	
     \centering
       \subfigure[Depth point alignment using ICP transformations estimated only with edge points]{
         \includegraphics[width=0.4\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
