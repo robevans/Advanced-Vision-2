@@ -45,7 +45,7 @@ showstringspaces=false
 
 
 \begin{document}
-\title{AV Assignment 2\\``3D Image Analysis''}
+\title{AV Assignment 2: 3D Image Analysis}
 \author{s0949775 and s1330128}
 \date{\today}
 \maketitle
@@ -63,133 +63,111 @@ each phase of processing:
 \item Fitting planes to the sides of the bin.
 \end{itemize}
 
-\subsection{Box extraction}
+\subsection{Box Extraction}
 To extract the bin we used a series of techniques on the colour and depth data.  We first converted the image to a chromaticity image, and smoothed with a gaussian filter to reduce noise.  This accentuated the orange regions of the box and made them consistent throughout the sequence.  An example image from this stage is shown in figure \ref{fig:full_chromaticity_image}.
 
 We manually thresholded the smoothed chromaticity image, using separate thresholds for each of the three colour channels, to detect the orange regions.  The output from this stage is shown in figure \ref{fig:thresholding_result}.
 
-Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region, producing the image in figure \ref{fig:extracted_box_example}.
-
-This technique worked well for the frames in the dataset, although it relied on knowledge specific to that dataset, such as the largest orange regions belonging to the box, and the box being isolated in the depth image.
-
-The final image in figure \ref{fig:extracted_box_example} shows some noise around the box.  We tried removing this by using thresholds on the box pixels.  The noise could be removed quite effectively for individual frames, but no static threshold values worked over the whole sequence.  Adaptive thresholding could be used to deal with this, but we decided that the resulting box extraction was good enough for our purposes.
-
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
       \subfigure[RGB image converted to chromaticity coordinates and smoothed.]{
-        \includegraphics[width=0.4\linewidth]{figs/full_chromaticity_image}
+        \includegraphics[width=0.45\linewidth]{figs/full_chromaticity_image}
         \label{fig:full_chromaticity_image}
       }
       \quad
       \subfigure[Thresholding colours to find orange regions.]{
-        \includegraphics[width=0.4\linewidth]{figs/thresholding_result}
+        \includegraphics[width=0.45\linewidth]{figs/thresholding_result}
         \label{fig:thresholding_result}
       }
 
         \subfigure[Depth image.]{
-        \includegraphics[width=0.4\linewidth]{figs/full_depth_data_picture}
+        \includegraphics[width=0.45\linewidth]{figs/full_depth_data_picture}
         \label{fig:full_depth_data_picture}
       }
       \subfigure[Detected bottom of the bin.]{
-        \includegraphics[width=0.4\linewidth]{figs/detected_bottom_orange_region_mask}
+        \includegraphics[width=0.45\linewidth]{figs/detected_bottom_orange_region_mask}
         \label{fig:detected_bottom_orange_region_mask}
       }
       \caption{Box extraction stages.}
 \end{figure}
 
-\begin{figure}[h!]
+Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region, producing the image in figure \ref{fig:extracted_box_example}.
+
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=1.0\textwidth]{figs/extracted_box_example}
   \caption{Final extracted box for one frame.}
   \label{fig:extracted_box_example}
 \end{figure}
 
+This technique worked well for the frames in the dataset, although it relied on knowledge specific to that dataset, such as the largest orange regions belonging to the box, and the box being isolated in the depth image.
+
+The final image in figure \ref{fig:extracted_box_example} shows some noise around the box.  We tried removing this by using thresholds on the box pixels.  The noise could be removed quite effectively for individual frames, but no static threshold values worked over the whole sequence.  Adaptive thresholding could be used to deal with this, but we decided that the resulting box extraction was good enough for our purposes.
 
 
-\begin{figure}[h!]
+
+\begin{figure}[!ht]
     \centering
       \subfigure[Depth point data from single frame]{
-        \includegraphics[width=0.4\linewidth]{figs/depth_points_example}
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_example}
         \label{fig:depth_points_example}
       }
       \subfigure[Coloured depth points]{
-        \includegraphics[width=0.4\linewidth]{figs/coloured_depth_points}
+        \includegraphics[width=0.475\linewidth]{figs/coloured_depth_points}
         \label{fig:coloured_depth_points}
       }
       \caption{Extracted box examples}
 \end{figure}
 
-\subsection{Point alignment}
-As was suggested in the assignment we took middle frame
-from the sequence as our foundation frame. Against it all
-other frame we compared.
+\subsection{Point Alignment}
+As was suggested in the assignment we took the middle frame
+from the sequence as our foundation frame, against which we aligned all other frames.
 
-To align points for different frames we used ICP algorithm
-that was given in the assignment. As actual data that was 
-supplied to ICP we used edge points 
-(see figure \ref{fig:icp_before_alignment_from_side}
-and \ref{fig:icp_before_alignment_from_top}).
- Current box's image
-was converted to greyscale and MATLAB's canny was used
-to find edges. Using edges, we selected only those
-depth points that we under the edges. We tuned edge
-detector to detect only long edges that have bigger
-intensity changes thus finding few but high quality edges
-(can be seen in figure \ref{fig:extracted_edge_mask}).
-This allowed ICP to run fast and produce alignments
-of high quality (see figure \ref{fig:icp_point_alignment_example}).
+To align points for different frames we used the ICP algorithm
+linked to in the assignment.  Because the plane points are not very distinctive, we used the edge points for alignment.  We detected the edges using Canny edge detection on the extracted RGB box pixels, converted to greyscale.  We tuned the edge detector parameters to ensure that only the main edges of the box were detected, as in figure \ref{fig:extracted_edge_mask}.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=0.5\textwidth]{figs/extracted_edge_mask}
   \caption{Extracted edges for ICP alignment}
   \label{fig:extracted_edge_mask}
 \end{figure}
 
-While in the assignment it was suggested to use
-weighted transformation matrices we did not use that.
-Utilising transformation from full point set of 
-the box produced the same results as
-transformation matrices that used points from 
-the edges. That can be seen in figures 
-\ref{fig:depth_points_after_edge_point_icp_alignment_ok}
-and
-\ref{fig:depth_points_after_full_point_icp_alignment_ok}.
+We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and\ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
-      \subfigure[Edge points before ICP alignment - top view]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_side}
+      \subfigure[ICP alignment with edge points - top view]{
+        \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_side}
         \label{fig:icp_before_alignment_from_side}
       }
-      \subfigure[Edge points before ICP alignment - side view]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_top}
+      \subfigure[ICP alignment with edge points - side view]{
+        \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_top}
         \label{fig:icp_before_alignment_from_top}
       }
-      \quad
-      \subfigure[Extracted edge points aligned with foundation frame points]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_point_alignment_example}
-        \label{fig:icp_point_alignment_example}
-      }
-      \caption{ICP alignment examples}
+      \caption{ICP alignment.  The foundation frame is black.  The current frame is shown in green prior to alignment and blue after alignment.}
 \end{figure}
 
-\begin{figure}[h!]	
+We found that aligning with the edges alone produced good results, and we did not see an improvement when using all the points in the bin.  Figure \ref{fig:depth_points_after_edge_point_icp_alignment_ok} shows the results of an alignment with just edge points, while figure \ref{fig:depth_points_after_full_point_icp_alignment_ok} shows the alignment using a combined transformation from edge points and all the points.  There was no clear visual difference.  Using the edges alone was also much faster than using all the points.
+
+
+
+\begin{figure}[!ht]	
     \centering
       \subfigure[Depth point alignment using ICP transformations estimated only with edge points]{
-        \includegraphics[width=0.4\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
         \label{fig:depth_points_after_edge_point_icp_alignment_ok}
       }
       \subfigure[Depth point alignment using ICP transformations estimated with 
       weighted edge points and full point set]{
-        \includegraphics[width=0.4\linewidth]{figs/depth_points_after_full_point_icp_alignment_ok}
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_after_full_point_icp_alignment_ok}
         \label{fig:depth_points_after_full_point_icp_alignment_ok}
       }
       \caption{Alignment of entire point dataset for the box. Red points are depth points from
       foundation frame, blue ones are from current frame for alignment and green ones (overlapping with red)
       are blue points after applying transformations estimated with ICP}
 \end{figure}
-\subsection{Plane fitting}
+\subsection{Plane Fitting}
 For plane extraction we chose to implement modified K-means algorithm.
 It uses plane's normal vector $\vec{n}$  and data point $ (x,y,z) $
 dot product as a distance measure. In maximization step it refits
@@ -203,24 +181,24 @@ to initialization. To cope with this, thresholds were introduced
 to find cases when initialization was definitely wrong.
 
 
-\begin{figure}[h!]
+\begin{figure}[!ht]
     \centering
       \subfigure[Fitted planes]{
-        \includegraphics[width=0.4\linewidth]{figs/fitted_planes_without_points}
+        \includegraphics[width=0.475\linewidth]{figs/fitted_planes_without_points}
         \label{fig:fitted_planes_without_points}
       }
       \subfigure[Fitted planes together with final combined depth points]{
-        \includegraphics[width=0.4\linewidth]{figs/fitted_planes_with_points}
+        \includegraphics[width=0.475\linewidth]{figs/fitted_planes_with_points}
         \label{fig:fitted_planes_with_points}
       }
       \caption{Merged depth points shown together with fitted planes.}
 \end{figure}
 \section{Results}
 
-\subsection{Dataset merging}
+\subsection{Dataset Merging}
 
 \subsection{Alignment accuracy}
-\begin{figure}[h!]
+\begin{figure}[!ht]
   \centering
   \includegraphics[width=0.5\textwidth]{figs/plane_angle_error_versus_foundation_plane}
   \caption{Dependency of frames combinedd and absolute mean distance of every point in "S." region to the plane}
