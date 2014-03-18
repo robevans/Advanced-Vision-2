@@ -11,7 +11,7 @@ foundation_box_mask = get_box_mask(foundation_frame);
 foundation_edges_mask = get_box_edges(foundation_frame, ...
     foundation_box_mask);
 
-foundation_edge_point_list = get_edge_point_list(foundation_frame, foundation_edges_mask);
+foundation_edge_point_list = get_point_list(foundation_frame, foundation_edges_mask);
 
 for i=1:20
 
@@ -22,19 +22,21 @@ box_mask = get_box_mask(frame);
 
 edges_mask = get_box_edges(frame, box_mask);
 
-edge_point_list = get_edge_point_list(frame, edges_mask);
+edge_point_list = get_point_list(frame, edges_mask);
 
 tic
-[TR, TT] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
+[TR, TT] = icp(foundation_edge_point_list(1:3, :), edge_point_list(1:3, :), 100, 'Matching', 'kDtree');
 toc
 
-Q = foundation_edge_point_list';
-T = (TR * edge_point_list + repmat(TT, 1, length(edge_point_list)))';
+G = edge_point_list(1:3, :)';
+Q = foundation_edge_point_list(1:3, :)';
+T = (TR * edge_point_list(1:3, :) + repmat(TT, 1, length(edge_point_list)))';
 
 figure(1)
 hold on
 plot3(Q(:,1), Q(:,2), Q(:,3), 'k.', 'MarkerSize', 10);
 plot3(T(:,1), T(:,2), T(:,3), 'b.', 'MarkerSize', 10);
+plot3(G(:,1), G(:,2), G(:,3), 'g.', 'MarkerSize', 10);
 hold off
 
 pause;

@@ -31,26 +31,29 @@ edges_mask = get_box_edges(frame, box_mask);
 edge_point_list = get_point_list(frame, edges_mask);
 box_3d_points = get_point_list(frame, box_mask);
 
-[TRe, TTe] = icp(foundation_edge_point_list, edge_point_list, 100, 'Matching', 'kDtree');
-%[TRf, TTf] = icp(foundation_box_3d_points, box_3d_points, 100, 'Matching', 'kDtree');
+[TRe, TTe] = icp(foundation_edge_point_list(1:3, :), edge_point_list(1:3, :), 100, 'Matching', 'kDtree');
+[TRf, TTf] = icp(foundation_box_3d_points(1:3, :), box_3d_points(1:3, :), 100, 'Matching', 'kDtree');
 
-TRf = TRe;
-TTf = TTe;
+%TRf = TRe;
+%TTf = TTe;
 
 TR = (TRf + TRe*10) / 11;
 TT = (TTf + TTe*10) / 11;
 
 
 transformed_box_3d_points ...
- = TR * box_3d_points + repmat(TT, 1, length(box_3d_points));
+ = TR * box_3d_points(1:3, :) + repmat(TT, 1, length(box_3d_points));
 
-composite_3d_points = [composite_3d_points transformed_box_3d_points];
+%composite_3d_points = [composite_3d_points transformed_box_3d_points];
 
-T = composite_3d_points';
-
+T = box_3d_points';
+Q = transformed_box_3d_points';
+O = foundation_box_3d_points(1:3, :)';
 figure(1)
+hold on;
+plot3(O(:,1), O(:,2), O(:,3), 'r.', 'MarkerSize', 0.5);
 plot3(T(:,1), T(:,2), T(:,3), 'b.', 'MarkerSize', 0.5);
+plot3(Q(:,1), Q(:,2), Q(:,3), 'g.', 'MarkerSize', 0.5);
 
-pause;
 
 end
