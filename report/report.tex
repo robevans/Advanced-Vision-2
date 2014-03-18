@@ -127,6 +127,8 @@ Colours for region thresholding (figure \ref{fig:thresholding_result}) we fine-t
       \caption{Extracted box examples}
 \end{figure}
 
+Extracted coloured 
+
 \subsection{Point alignment}
 As was suggested in the assignment we took middle frame
 from the sequence as our foundation frame. Against it all
@@ -134,14 +136,18 @@ other frame we compared.
 
 To align points for different frames we used ICP algorithm
 that was given in the assignment. As actual data that was 
-supplied to ICP we used edge points. Current box's image
+supplied to ICP we used edge points 
+(see figure \ref{fig:icp_before_alignment_from_side}
+and \ref{fig:icp_before_alignment_from_top}).
+ Current box's image
 was converted to greyscale and MATLAB's canny was used
 to find edges. Using edges, we selected only those
 depth points that we under the edges. We tuned edge
 detector to detect only long edges that have bigger
-intensity changes thus finding few but high quality edges.
+intensity changes thus finding few but high quality edges
+(can be seen in figure \ref{fig:extracted_edge_mask}).
 This allowed ICP to run fast and produce alignments
-of high quality.
+of high quality (see figure \ref{fig:icp_point_alignment_example}).
 
 \begin{figure}[h!]
   \centering
@@ -150,12 +156,15 @@ of high quality.
   \label{fig:extracted_edge_mask}
 \end{figure}
 
-While in the assignment there was suggested to use
+While in the assignment it was suggested to use
 weighted transformation matrices we did not use that.
 Utilising transformation from full point set of 
-the box only produced worse results compared
-to transformation matrices that used points from 
-the edges.
+the box produced the same results as
+transformation matrices that used points from 
+the edges. That can be seen in figures 
+\ref{fig:depth_points_after_edge_point_icp_alignment_ok}
+and
+\ref{fig:depth_points_after_full_point_icp_alignment_ok}.
 
 \begin{figure}[h!]
     \centering
@@ -206,27 +215,27 @@ to find cases when initialization was definitely wrong.
 
 \begin{figure}[h!]
     \centering
-      \subfigure[Edge points before ICP alignment - top view]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_side}
-        \label{fig:icp_before_alignment_from_side}
+      \subfigure[Fitted planes]{
+        \includegraphics[width=0.4\linewidth]{figs/fitted_planes_without_points}
+        \label{fig:fitted_planes_without_points}
       }
-      \subfigure[Edge points before ICP alignment - side view]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_top}
-        \label{fig:icp_before_alignment_from_top}
+      \subfigure[Fitted planes together with final combined depth points]{
+        \includegraphics[width=0.4\linewidth]{figs/fitted_planes_with_points}
+        \label{fig:fitted_planes_with_points}
       }
-      \quad
-      \subfigure[Extracted edge points aligned with foundation frame points]{
-        \includegraphics[width=0.4\linewidth]{figs/icp_point_alignment_example}
-        \label{fig:icp_point_alignment_example}
-      }
-      \caption{ICP alignment examples}
+      \caption{Merged depth points shown together with fitted planes.}
 \end{figure}
 \section{Results}
 
 \subsection{Dataset merging}
 
 \subsection{Alignment accuracy}
-
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figs/plane_angle_error_versus_foundation_plane}
+  \caption{Dependency of frames combinedd and absolute mean distance of every point in "S." region to the plane}
+  \label{fig:plane_angle_error_versus_foundation_plane}
+\end{figure}
 \subsection{Plane fitting}
 
 \section{Discussion}
@@ -258,6 +267,8 @@ easy to implement approach that works good enough.
 
 
 \newpage
+
+
 
 \newpage
 \section{Code}
