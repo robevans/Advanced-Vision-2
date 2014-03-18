@@ -54,29 +54,15 @@ showstringspaces=false
 This report covers the construction of a 3D model from a 
 sequence of RGB and depth frames from the Kinect. 
 The algorithms we chose and explored are discussed for
-each phase of processing: 
+each phase of processing:
 \begin{itemize}
-\item extracting the bin from the RGB images and corresponding 3D points
-\item  aligning the extracted bin points from each frame in a single coordinate frame
+\item extracting the bin from the RGB images and corresponding 3D points.
+\item aligning the extracted bin points from each frame in a single coordinate frame.
+\item combining the aligned bit points into a single dataset and fitting two planes.
 \end{itemize}
 
-
-\section{Methods}
-Registering data points into one combined dataset and 
-extracting planes of the sides of the box involved a few 
-steps:
-
-\begin{enumerate}
-  \item Extract points that belong only to the box
-  \item Align the box points with the ones in foundation frame
-  \item Add the points to combined dataset
-  \item Fit the planes to current dataset
-\end{enumerate}
-
-Each of the steps are described below.
-
 \subsection{Box extraction}
-To extract box\ref{fig:extracted_box_example} we used the fact that it has two orange regions.
+To extract the bin\ref{fig:extracted_box_example} we used the fact that it has two orange regions.  We first converted the image to a chromaticity image to reduce the effect of lighting changes throughout the sequence, and smoothed the image with a gaussian filter to remove noise.  We 
 We found bottom orange region of the box and then took all of the
 pixels above it. After extracting these points from image, we 
 intersected them with depth information - we removed part of
@@ -123,7 +109,7 @@ even gets truncated because box gets out of frame).
       \caption{Box extraction steps}
 \end{figure}
 
-Colors for region thresholding we fine-tuned manually.
+Colours for region thresholding we fine-tuned manually.
 
 
 
