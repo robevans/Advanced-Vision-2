@@ -60,6 +60,7 @@ each phase of processing:
 \item  aligning the extracted bin points from each frame in a single coordinate frame
 \end{itemize}
 
+
 \section{Methods}
 Registering data points into one combined dataset and 
 extracting planes of the sides of the box involved a few 
@@ -124,6 +125,21 @@ even gets truncated because box gets out of frame).
 
 Colors for region thresholding we fine-tuned manually.
 
+
+
+\begin{figure}[h!]
+    \centering
+      \subfigure[Depth point data from single frame]{
+        \includegraphics[width=0.4\linewidth]{figs/depth_points_example}
+        \label{fig:depth_points_example}
+      }
+      \subfigure[Coloured depth points]{
+        \includegraphics[width=0.4\linewidth]{figs/coloured_depth_points}
+        \label{fig:coloured_depth_points}
+      }
+      \caption{Extracted box examples}
+\end{figure}
+
 \subsection{Point alignment}
 As was suggested in the assignment we took middle frame
 from the sequence as our foundation frame. Against it all
@@ -140,6 +156,13 @@ intensity changes thus finding few but high quality edges.
 This allowed ICP to run fast and produce alignments
 of high quality.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figs/extracted_edge_mask}
+  \caption{Extracted edges for ICP alignment}
+  \label{fig:extracted_edge_mask}
+\end{figure}
+
 While in the assignment there was suggested to use
 weighted transformation matrices we did not use that.
 Utilising transformation from full point set of 
@@ -147,6 +170,39 @@ the box only produced worse results compared
 to transformation matrices that used points from 
 the edges.
 
+\begin{figure}[h!]
+    \centering
+      \subfigure[Edge points before ICP alignment - top view]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_side}
+        \label{fig:icp_before_alignment_from_side}
+      }
+      \subfigure[Edge points before ICP alignment - side view]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_top}
+        \label{fig:icp_before_alignment_from_top}
+      }
+      \quad
+      \subfigure[Extracted edge points aligned with foundation frame points]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_point_alignment_example}
+        \label{fig:icp_point_alignment_example}
+      }
+      \caption{ICP alignment examples}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+      \subfigure[Depth point alignment using ICP transformations estimated only with edge points]{
+        \includegraphics[width=0.4\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
+        \label{fig:depth_points_after_edge_point_icp_alignment_ok}
+      }
+      \subfigure[Depth point alignment using ICP transformations estimated with 
+      weighted edge points and full point set]{
+        \includegraphics[width=0.4\linewidth]{figs/depth_points_after_full_point_icp_alignment_ok}
+        \label{fig:depth_points_after_full_point_icp_alignment_ok}
+      }
+      \caption{Alignment of entire point dataset for the box. Red points are depth points from
+      foundation frame, blue ones are from current frame for alignment and green ones (overlapping with red)
+      are blue points after applying transformations estimated with ICP}
+\end{figure}
 \subsection{Plane fitting}
 For plane extraction we chose to implement modified K-means algorithm.
 It uses plane's normal vector $\vec{n}$  and data point $ (x,y,z) $
@@ -160,6 +216,24 @@ planes that was required though it is prone (as regular K-mean is)
 to initialization. To cope with this, thresholds were introduced
 to find cases when initialization was definitely wrong.
 
+
+\begin{figure}[h!]
+    \centering
+      \subfigure[Edge points before ICP alignment - top view]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_side}
+        \label{fig:icp_before_alignment_from_side}
+      }
+      \subfigure[Edge points before ICP alignment - side view]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_before_alignment_from_top}
+        \label{fig:icp_before_alignment_from_top}
+      }
+      \quad
+      \subfigure[Extracted edge points aligned with foundation frame points]{
+        \includegraphics[width=0.4\linewidth]{figs/icp_point_alignment_example}
+        \label{fig:icp_point_alignment_example}
+      }
+      \caption{ICP alignment examples}
+\end{figure}
 \section{Results}
 
 \subsection{Dataset merging}
