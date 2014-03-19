@@ -66,7 +66,7 @@ To extract the bin we used a series of techniques on the colour and depth data. 
 
 We manually thresholded the smoothed chromaticity image, using separate thresholds for each of the three colour channels, to detect the orange regions.  The output from this stage is shown in figure \ref{fig:thresholding_result}.
 
-\begin{figure}[h]
+\begin{figure}[h!]
     \centering
       \subfigure[RGB image converted to chromaticity coordinates and smoothed.]{
         \includegraphics[width=0.45\linewidth]{figs/full_chromaticity_image}
@@ -85,6 +85,10 @@ We manually thresholded the smoothed chromaticity image, using separate threshol
       \subfigure[Detected bottom of the bin.]{
         \includegraphics[width=0.45\linewidth]{figs/detected_bottom_orange_region_mask}
         \label{fig:detected_bottom_orange_region_mask}
+      }
+      \subfigure[Mask of detected bin]{
+        \includegraphics[width=0.45\linewidth]{figs/extracted_box_mask_example}
+        \label{fig:extracted_box_mask_example}
       }
       \caption{Box extraction stages.}
 \end{figure}

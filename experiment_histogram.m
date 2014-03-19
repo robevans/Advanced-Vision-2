@@ -82,6 +82,6 @@ imshow(repmat(whole_box_mask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Detected box wit
 figure(7)
 imshow(repmat(noise_removal_mask, 1, 1, 3) .* frame_ch(:,:,1:3)); % Detected box thresholded for noise
 threeHists(detection_ch_image, 8)
-pause
+
 
 end
