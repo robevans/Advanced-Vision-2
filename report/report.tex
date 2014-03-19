@@ -93,7 +93,7 @@ We manually thresholded the smoothed chromaticity image, using separate threshol
       \caption{Box extraction stages.}
 \end{figure}
 
-Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region, producing the image in figure \ref{fig:extracted_box_example}.
+Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region (figure \ref{fig:extracted_box_mask_example}), to produce the colour image in figure \ref{fig:extracted_box_example}.
 
 \begin{figure}[!ht]
   \centering
@@ -146,9 +146,11 @@ linked to in the assignment.  Because the plane points are not very distinctive,
       \caption{ICP alignment.  The foundation frame is black.  The current frame is shown in green prior to alignment and blue after alignment.}
 \end{figure}
 
-We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and\ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
+We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and \ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
 
 We found that aligning with the edges alone produced good results, and we did not see an improvement when using all the points in the bin.  Figure \ref{fig:depth_points_after_edge_point_icp_alignment_ok} shows the results of an alignment with just edge points, while figure \ref{fig:depth_points_after_full_point_icp_alignment_ok} shows the alignment using a combined transformation from edge points and all the points.  There was no clear visual difference.  Using the edges alone was also much faster than using all the points.
+
+Fusing the data from each frame into a single composite dataset was a simple matter of concatenating the lists of points from all frames.
 
 \begin{figure}[h]	
     \centering
@@ -167,15 +169,13 @@ We found that aligning with the edges alone produced good results, and we did no
 \end{figure}
 
 \section{Plane Fitting}
-For the plane fitting we implemented a modified K-means algorithm.
-It uses the dot product of the the planes' normal vectors $\vec{n}$  plus the data point $ (x,y,z) $ as measure of the distance from the point to the plane. In the maximisation step it refits the
-plane on assigned data points for each plane
- using SVD (as given in ``fitplane.m"
-algorithm). Code can be found in appendix \ref{apen:code_in}.
+For the plane fitting we implemented a modified K-means algorithm.  It starts with two randomly initialised planes and assigns points to the geometrically nearest plane.  The planes are then refitted to their points and all points are reassigned to the nearest plane.  This continues until the algorithm converges (the point assignments no longer change after the planes are refitted).  The code for this can be found in appendix \ref{apen:code_in}.
 
 This approach easily allowed us to fit data points to any of number of
 planes.  K-means is sensitive to the initialisation of the means.  A poor initialisation means that the algorithm will not converge to the correct answer.  To cope with this, we introduced thresholds
-to find cases when initialisation was definitely wrong.  For example, if all the points were assigned to one plane we would reinitialise, and if the plane fitting error was too high after convergence we would also reinitialise.  We did the same if the angle between the planes was too far from 90 degrees.  With these measures, the algorithm reliably fits two planes to the composite set of bin points from all frames.
+to find cases when initialisation was definitely wrong.  For example, if all the points were assigned to one plane we would reinitialise, and if the average plane fitting error was too high after convergence we would also reinitialise.  With these measures, the algorithm reliably and accurately fits two planes to the composite set of bin points from all frames.
+
+We found that the angle between the planes was 60.2 degrees.  This was surprising as we expected it to be 90 degrees, and the planes appeared to be visually fitted well.
 
 \begin{figure}[h]
     \centering
@@ -192,36 +192,38 @@ to find cases when initialisation was definitely wrong.  For example, if all the
 
 \section{Discussion}
 The ICP and plane fitting algorithms worked without problems in most cases. K-means sometimes suffered
-from poor initialisation but was easy to 
-fix using a few checks of total
-absolute error. The trickiest part is initial box
-region detection. Fine-tuning color thresholds is tedious
-process and always captures some artefacts around the box
-that might have impact in later stages.
+from poor initialisations but that was easily fixed using a few checks of total
+absolute error. The trickiest part was initial box
+region detection. Fine-tuning colour thresholds is a tedious
+process and tends to capture some artefacts around the box
+that might affect later stages.  In addition, finely tuned algorithms can work well for a specific dataset, but will probably not generalise as well.
 
-One of possible techniques to try for box detection
-would be a probabilistic modelling - it might be possible
-to detect background from whole series of frames
-and then use it on each frame individually. 
-We haven't tried this and just sticked with
-easy to implement approach that works good enough.
+One possible technique for box detection
+would involve probabilistic background modelling - it might be possible
+to detect the background from the whole series of frames
+and then subtract it from each frame individually. 
+We didn't try this, but stuck with the
+simple approach that works well for our dataset.
 
+\section{Evaluation}
 
-\subsection{Alignment accuracy}
-In figure \ref{fig:plane_angle_error_versus_foundation_plane} it
-can be seen that in the beginning fitting error increases and
-after 10th frame it starts to decrease. We think that this is because
-initially alignment is being done against foundation frame and
-very first ones that are quite different from foundation frame
-so that results in higher error. Possibly there are few outliers
-that raise average of the training error.
+Images of the bin after each dataset is merged can be seen in figures \ref{fig:eval1a} through \ref{fig:eval1b}, showing the composite points becoming more dense as each new frame is registered to the foundation frame.  They show the coloured and uncoloured 3D points from the top and the side.
 
-After more points are added, planes are realigned so that outliers
-are captured better thus reducing overall error.
+Zoomed images of the leftmost white square as new frames are included are shown in figures \ref{fig:eval2a} and \ref{fig:eval2b}.
+
+We extracted the surface normal of each of the rightward facing planes from the 20 images after the registration transformation and inverted if necessary to make sure that they all faced towards the camera.  We computed the angle between each vector and the Foundation vector, finding an average of 0.46 degrees with a standard deviation of 0.22.
+
+Figure \ref{fig:plane_angle_error_versus_foundation_plane} shows the average distance of points in the rightmost S. region of the box to the local plane, as a function of the number of frames in the composite dataset.  It
+can be seen that fitting error increases initially but starts to decrease
+after the 10th frame. We think this may be because
+ alignment is done against the foundation frame, and
+the first frames are quite different from the foundation frame,
+resulting in a higher error.  In addition, as more frames are included in the composite dataset, the effects of outliers will be reduced as most of the points will be concentrated near the plane.
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.5\textwidth]{figs/plane_angle_error_versus_foundation_plane}
-  \caption{Dependency of frames combinedd and absolute mean distance of every point in "S." region to the plane}
+  \includegraphics[width=1\textwidth]{figs/plane_angle_error_versus_foundation_plane}
+  \caption{Absolute mean distance of every point in "S." region to the plane as a function of the number of frames in the composite data set.}
   \label{fig:plane_angle_error_versus_foundation_plane}
 \end{figure}
 
@@ -235,47 +237,8 @@ are captured better thus reducing overall error.
 
 \appendix
 
-
-\newpage
-
-
-
-\newpage
-
-
-\section{Code}
-\label{apen:code_in}
-\subsection{Main script}
-\lstinputlisting[language=Matlab, caption=main\_script.m]
-{"../refactored/main_script.m"}
-
-\subsection{Box extraction}
-\lstinputlisting[language=Matlab, caption=get\_box\_mask.m]
-{"../refactored/Box extraction/get_box_mask.m"}
-
-\subsection{Frame alignment}
-\lstinputlisting[language=Matlab, caption=alignPointsToFoundationFrame.m]
-{"../refactored/Frame alignment/alignPointsToFoundationFrame.m"}
-\lstinputlisting[language=Matlab, caption=get\_box\_edges.m]
-{"../refactored/Frame alignment/get_box_edges.m"}
-\lstinputlisting[language=Matlab, caption=get\_point\_list.m]
-{"../refactored/Frame alignment/get_point_list.m"}
-\lstinputlisting[language=Matlab, caption=process\_foundation\_frame.m]
-{"../refactored/Frame alignment/process_foundation_frame.m"}
-
-\subsection{Plane fitting}
-\lstinputlisting[language=Matlab, caption=plane\_kmeans.m]
-{"../refactored/Plane fitting/plane_kmeans.m"}
-\lstinputlisting[language=Matlab, caption=fit\_planes\_on\_composite\_dataset.m]
-{"../refactored/Plane fitting/fit_planes_on_composite_dataset.m"}
-
-\subsection{Evaluation}
-\lstinputlisting[language=Matlab, caption=fit\_plane\_to\_s\_box.m]
-{"../refactored/Evaluation/fit_plane_to_s_box.m"}
-
-
 \section{Frame sequence figures}
-Below all required figures from evaluation part can be found.
+On the following pages are all required figures from the evaluation section.
 
 \begin{figure}[h!]
 \centering
@@ -334,6 +297,7 @@ Below all required figures from evaluation part can be found.
 \includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_18_side}
 }
 \caption{Extracted boxes - side}
+\label{fig:eval1a}
 \end{figure}
 
 \begin{figure}[h!]
@@ -520,6 +484,7 @@ Below all required figures from evaluation part can be found.
 \subfigure[Frame 20]{
 \includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_20_top}}
 \caption{Extracted depth points - top}
+\label{fig:eval1b}
 \end{figure}
 
 
@@ -562,6 +527,7 @@ Below all required figures from evaluation part can be found.
 \subfigure[Frame 18]{
 \includegraphics[width=0.30\linewidth]{../refactored/figures/part2_18_left_square}}
 \caption{Leftmost zoomed in square}
+\label{fig:eval2a}
 \end{figure}
 
 \begin{figure}[h!]
@@ -571,7 +537,41 @@ Below all required figures from evaluation part can be found.
 \subfigure[Frame 20]{
 \includegraphics[width=0.30\linewidth]{../refactored/figures/part2_20_left_square}}
 \caption{Leftmost zoomed in square}
+\label{fig:eval2b}
 \end{figure}
+
+\clearpage
+
+
+\section{Code}
+\label{apen:code_in}
+\subsection{Main script}
+\lstinputlisting[language=Matlab, caption=main\_script.m]
+{"../refactored/main_script.m"}
+
+\subsection{Box extraction}
+\lstinputlisting[language=Matlab, caption=get\_box\_mask.m]
+{"../refactored/Box extraction/get_box_mask.m"}
+
+\subsection{Frame alignment}
+\lstinputlisting[language=Matlab, caption=alignPointsToFoundationFrame.m]
+{"../refactored/Frame alignment/alignPointsToFoundationFrame.m"}
+\lstinputlisting[language=Matlab, caption=get\_box\_edges.m]
+{"../refactored/Frame alignment/get_box_edges.m"}
+\lstinputlisting[language=Matlab, caption=get\_point\_list.m]
+{"../refactored/Frame alignment/get_point_list.m"}
+\lstinputlisting[language=Matlab, caption=process\_foundation\_frame.m]
+{"../refactored/Frame alignment/process_foundation_frame.m"}
+
+\subsection{Plane fitting}
+\lstinputlisting[language=Matlab, caption=plane\_kmeans.m]
+{"../refactored/Plane fitting/plane_kmeans.m"}
+\lstinputlisting[language=Matlab, caption=fit\_planes\_on\_composite\_dataset.m]
+{"../refactored/Plane fitting/fit_planes_on_composite_dataset.m"}
+
+\subsection{Evaluation}
+\lstinputlisting[language=Matlab, caption=fit\_plane\_to\_s\_box.m]
+{"../refactored/Evaluation/fit_plane_to_s_box.m"}
 
 
 
