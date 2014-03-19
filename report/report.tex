@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[12pt,a4paper,onecolumn]{article}
 \usepackage{covington}
 \usepackage{comment}
 \usepackage{url}
@@ -7,13 +7,12 @@
 \usepackage[UKenglish]{babel}
 \usepackage{graphicx}
 \usepackage{subfigure}
-%\usepackage{savetrees}
-%\usepackage[margin=1.0in]{geometry}
+\usepackage[font={it}]{caption}
 
+% Spaced paragraphs
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.1in}
 
-% Default fixed font does not support bold face
-\DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{8} % for bold
-\DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{8}  % for normal
 
 % Custom colors
 \usepackage{color}
@@ -24,12 +23,12 @@
 \usepackage{listings}
 \lstset{
 language=Matlab,
-basicstyle=\ttm,
+basicstyle=\ttfamily,
 breaklines=true,
 otherkeywords={self},             % Add keywords here
-keywordstyle=\ttb\color{deepblue},
+keywordstyle=\color{deepblue},
 emph={MyClass,__init__},          % Custom highlighting
-emphstyle=\ttb\color{deepred},    % Custom highlighting style
+emphstyle=\color{deepred},    % Custom highlighting style
 stringstyle=\color{deepgreen},
 frame=tb,                         % Any extra options here
 showstringspaces=false  
@@ -44,7 +43,7 @@ showstringspaces=false
 
 
 \begin{document}
-\title{AV Assignment 2\\``3D Image Analysis''}
+\title{AV Assignment 2: 3D Image Analysis}
 \author{s0949775 and s1330128}
 \date{\today}
 \maketitle
@@ -54,97 +53,149 @@ showstringspaces=false
 This report covers the construction of a 3D model from a 
 sequence of RGB and depth frames from the Kinect. 
 The algorithms we chose and explored are discussed for
-each phase of processing: 
+each phase of processing:
 \begin{itemize}
-\item extracting the bin from the RGB images and corresponding 3D points
-\item  aligning the extracted bin points from each frame in a single coordinate frame
+\item Extracting the bin from the RGB images and corresponding 3D points.
+\item Aligning the extracted bin points from each frame in a single coordinate frame.
+\item Combining the aligned bin points into a single dataset.
+\item Fitting planes to the sides of the bin.
 \end{itemize}
 
-\section{Methods}
-Registering data points into one combined dataset and 
-extracting planes of the sides of the box involved a few 
-steps:
+\section{Box Extraction}
+To extract the bin we used a series of techniques on the colour and depth data.  We first converted the image to a chromaticity image, and smoothed with a gaussian filter to reduce noise.  This accentuated the orange regions of the box and made them consistent throughout the sequence.  An example image from this stage is shown in figure \ref{fig:full_chromaticity_image}.
 
-\begin{enumerate}
-  \item Extract points that belong only to the box
-  \item Align the box points with the ones in foundation frame
-  \item Add the points to combined dataset
-  \item Fit the planes to current dataset
-\end{enumerate}
+We manually thresholded the smoothed chromaticity image, using separate thresholds for each of the three colour channels, to detect the orange regions.  The output from this stage is shown in figure \ref{fig:thresholding_result}.
 
-Each of the steps are described below.
+\begin{figure}[h!]
+    \centering
+      \subfigure[RGB image converted to chromaticity coordinates and smoothed.]{
+        \includegraphics[width=0.45\linewidth]{figs/full_chromaticity_image}
+        \label{fig:full_chromaticity_image}
+      }
+      \quad
+      \subfigure[Thresholding colours to find orange regions.]{
+        \includegraphics[width=0.45\linewidth]{figs/thresholding_result}
+        \label{fig:thresholding_result}
+      }
 
-\subsection{Box extraction}
-To extract box we used the fact that it has two orange regions.
-We found bottom orange region of the box and then took all of the
-pixels above it. After extracting these points from image, we 
-intersected them with depth information - we removed part of
-pixels that are above top orange region using the fact that above
-the box all of the depth values are NaN.
+        \subfigure[Depth image.]{
+        \includegraphics[width=0.45\linewidth]{figs/full_depth_data_picture}
+        \label{fig:full_depth_data_picture}
+      }
+      \subfigure[Detected bottom of the bin.]{
+        \includegraphics[width=0.45\linewidth]{figs/detected_bottom_orange_region_mask}
+        \label{fig:detected_bottom_orange_region_mask}
+      }
+      \subfigure[Mask of detected bin]{
+        \includegraphics[width=0.45\linewidth]{figs/extracted_box_mask_example}
+        \label{fig:extracted_box_mask_example}
+      }
+      \caption{Box extraction stages.}
+\end{figure}
 
-For actual region lookup, basic color thresholding was used
-since orange region had very distinguishable color. Before 
-thresholding we converted regular RGB colors
-to chromaticity colors to reduce impact of lighting
-and applied gaussian smoothing on pixels of
-the frame. After these stops two big regions of
-orange were found and we took the biggest one
-since bottom region is always the biggest (later it 
-even gets truncated because box gets out of frame).
+Some noise is present, which corresponds to other orange features in the scene.  To eliminate this, we took the intersection of the thresholded regions with the depth image (see figure \ref{fig:full_depth_data_picture}), and identified the two largest connected components remaining.  These corresponded to the orange regions at the top and bottom of the box.  From these we could reliably find the bottom of the box, as shown in figure \ref{fig:detected_bottom_orange_region_mask}.  Finally, to identify all of the pixels in the box, we took all pixels in the depth map that were above the bottom edge of the lower orange region, producing the image in figure \ref{fig:extracted_box_example}.
 
-Colors for region thresholding we fine-tuned manually.
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figs/extracted_box_example}
+  \caption{Final extracted box for one frame.}
+  \label{fig:extracted_box_example}
+\end{figure}
 
-\subsection{Point alignment}
-As was suggested in the assignment we took middle frame
-from the sequence as our foundation frame. Against it all
-other frame we compared.
+This technique worked well for the frames in the dataset, although it relied on knowledge specific to that dataset, such as the largest orange regions belonging to the box, and the box being isolated in the depth image.
 
-To align points for different frames we used ICP algorithm
-that was given in the assignment. As actual data that was 
-supplied to ICP we used edge points. Current box's image
-was converted to greyscale and MATLAB's canny was used
-to find edges. Using edges, we selected only those
-depth points that we under the edges. We tuned edge
-detector to detect only long edges that have bigger
-intensity changes thus finding few but high quality edges.
-This allowed ICP to run fast and produce alignments
-of high quality.
+The final image in figure \ref{fig:extracted_box_example} shows some noise around the box.  We tried removing this by using thresholds on the box pixels.  The noise could be removed quite effectively for individual frames, but no static threshold values worked over the whole sequence.  Adaptive thresholding could be used to deal with this, but we decided that the resulting box extraction was good enough for our purposes.
 
-While in the assignment there was suggested to use
-weighted transformation matrices we did not use that.
-Utilising transformation from full point set of 
-the box only produced worse results compared
-to transformation matrices that used points from 
-the edges.
+\begin{figure}[!h]
+    \centering
+      \subfigure[Depth point data from single frame.]{
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_example}
+        \label{fig:depth_points_example}
+      }
+      \subfigure[Coloured depth points.]{
+        \includegraphics[width=0.475\linewidth]{figs/coloured_depth_points}
+        \label{fig:coloured_depth_points}
+      }
+      \caption{3D Points of extracted bin.}
+\end{figure}
 
-\subsection{Plane fitting}
-For plane extraction we chose to implement modified K-means algorithm.
-It uses plane's normal vector $\vec{n}$  and data point $ (x,y,z) $
-dot product as a distance measure. In maximization step it refits
+\section{Point Alignment}
+As was suggested in the assignment we took the middle frame
+from the sequence as our foundation frame, against which we aligned all other frames.
+
+To align points for different frames we used the ICP algorithm
+linked to in the assignment.  Because the plane points are not very distinctive, we used the edge points for alignment.  We detected the edges using Canny edge detection on the extracted RGB box pixels, converted to greyscale.  We tuned the edge detector parameters to ensure that only the main edges of the box were detected, as in figure \ref{fig:extracted_edge_mask}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figs/extracted_edge_mask}
+  \caption{Extracted edges for ICP alignment}
+  \label{fig:extracted_edge_mask}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+      \subfigure[ICP alignment with edge points - top view.]{
+        \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_side}
+        \label{fig:icp_before_alignment_from_side}
+      }
+      \subfigure[ICP alignment with edge points - side view.]{
+        \includegraphics[width=0.475\linewidth]{figs/icp_before_alignment_from_top}
+        \label{fig:icp_before_alignment_from_top}
+      }
+      \caption{ICP alignment.  The foundation frame is black.  The current frame is shown in green prior to alignment and blue after alignment.}
+\end{figure}
+
+We took the 3D points corresponding to the detected greyscale edges and used them as input to the ICP algorithm.  Figures \ref{fig:icp_before_alignment_from_side} and\ref{fig:icp_before_alignment_from_top} show an example alignment from the top and the side.
+
+We found that aligning with the edges alone produced good results, and we did not see an improvement when using all the points in the bin.  Figure \ref{fig:depth_points_after_edge_point_icp_alignment_ok} shows the results of an alignment with just edge points, while figure \ref{fig:depth_points_after_full_point_icp_alignment_ok} shows the alignment using a combined transformation from edge points and all the points.  There was no clear visual difference.  Using the edges alone was also much faster than using all the points.
+
+\begin{figure}[h]	
+    \centering
+      \subfigure[Depth point alignment using ICP transformations estimated only with edge points.]{
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_after_edge_point_icp_alignment_ok}
+        \label{fig:depth_points_after_edge_point_icp_alignment_ok}
+      }
+      \subfigure[Depth point alignment using ICP transformations estimated with 
+      weighted edge points and full point set.]{
+        \includegraphics[width=0.475\linewidth]{figs/depth_points_after_full_point_icp_alignment_ok}
+        \label{fig:depth_points_after_full_point_icp_alignment_ok}
+      }
+      \caption{Alignment of entire point dataset for the box. Red points are depth points from
+      foundation frame, blue ones are from current frame for alignment and green ones (overlapping with red)
+      are blue points after applying transformations estimated with ICP}
+\end{figure}
+
+\section{Plane Fitting}
+For the plane fitting we implemented a modified K-means algorithm.
+It uses the dot product of the the planes' normal vectors $\vec{n}$  plus the data point $ (x,y,z) $ as measure of the distance from the point to the plane. In the maximisation step it refits the
 plane on assigned data points for each plane
- using SVD (as given in "fitplane.m"
-algorithm"). Code can be found in appendix \ref{apen:code_in}.
+ using SVD (as given in ``fitplane.m"
+algorithm). Code can be found in appendix \ref{apen:code_in}.
 
-This approach easily allowed to fit data points to any of number of
-planes that was required though it is prone (as regular K-mean is)
-to initialization. To cope with this, thresholds were introduced
-to find cases when initialization was definitely wrong.
+This approach easily allowed us to fit data points to any of number of
+planes.  K-means is sensitive to the initialisation of the means.  A poor initialisation means that the algorithm will not converge to the correct answer.  To cope with this, we introduced thresholds
+to find cases when initialisation was definitely wrong.  For example, if all the points were assigned to one plane we would reinitialise, and if the plane fitting error was too high after convergence we would also reinitialise.  We did the same if the angle between the planes was too far from 90 degrees.  With these measures, the algorithm reliably fits two planes to the composite set of bin points from all frames.
 
-\section{Results}
-
-\subsection{Dataset merging}
-
-\subsection{Alignment accuracy}
-
-\subsection{Plane fitting}
+\begin{figure}[h]
+    \centering
+      \subfigure[Fitted planes]{
+        \includegraphics[width=0.475\linewidth]{figs/fitted_planes_without_points}
+        \label{fig:fitted_planes_without_points}
+      }
+      \subfigure[Fitted planes together with final combined depth points]{
+        \includegraphics[width=0.475\linewidth]{figs/fitted_planes_with_points}
+        \label{fig:fitted_planes_with_points}
+      }
+      \caption{Merged depth points shown together with fitted planes.}
+\end{figure}
 
 \section{Discussion}
-ICP and plane fitting algorithms in most cases 
-worked without problems. K-means sometimes suffered
-from poor initialization but that is easy to 
-fix giving just a few checks of total
+The ICP and plane fitting algorithms worked without problems in most cases. K-means sometimes suffered
+from poor initialisation but was easy to 
+fix using a few checks of total
 absolute error. The trickiest part is initial box
-region detection. Finetuning color thresholds is tedious
+region detection. Fine-tuning color thresholds is tedious
 process and always captures some artefacts around the box
 that might have impact in later stages.
 
@@ -154,6 +205,25 @@ to detect background from whole series of frames
 and then use it on each frame individually. 
 We haven't tried this and just sticked with
 easy to implement approach that works good enough.
+
+
+\subsection{Alignment accuracy}
+In figure \ref{fig:plane_angle_error_versus_foundation_plane} it
+can be seen that in the beginning fitting error increases and
+after 10th frame it starts to decrease. We think that this is because
+initially alignment is being done against foundation frame and
+very first ones that are quite different from foundation frame
+so that results in higher error. Possibly there are few outliers
+that raise average of the training error.
+
+After more points are added, planes are realigned so that outliers
+are captured better thus reducing overall error.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figs/plane_angle_error_versus_foundation_plane}
+  \caption{Dependency of frames combinedd and absolute mean distance of every point in "S." region to the plane}
+  \label{fig:plane_angle_error_versus_foundation_plane}
+\end{figure}
 
 \begin{thebibliography}{9}
   
@@ -168,11 +238,334 @@ easy to implement approach that works good enough.
 
 \newpage
 
+
+
 \newpage
+
+
 \section{Code}
 \label{apen:code_in}
 
-%\lstinputlisting[caption=assgn\_tracking.m, language=Matlab]{../assgn_tracking.m}
+\subsection{Box extraction}
+\lstinputlisting[language=Matlab, caption=get\_box\_mask.m]
+{"../refactored/Box extraction/get_box_mask.m"}
+
+\subsection{Frame alignment}
+\lstinputlisting[language=Matlab, caption=alignPointsToFoundationFrame.m]
+{"../refactored/Frame alignment/alignPointsToFoundationFrame.m"}
+\lstinputlisting[language=Matlab, caption=get\_box\_edges.m]
+{"../refactored/Frame alignment/get_box_edges.m"}
+\lstinputlisting[language=Matlab, caption=get\_point\_list.m]
+{"../refactored/Frame alignment/get_point_list.m"}
+
+\subsection{Plane fitting}
+\lstinputlisting[language=Matlab, caption=plane\_kmeans.m]
+{"../refactored/Plane fitting/plane_kmeans.m"}
+\lstinputlisting[language=Matlab, caption=fit\_planes\_on\_composite\_dataset.m]
+{"../refactored/Plane fitting/fit_planes_on_composite_dataset.m"}
+
+
+
+
+\section{Frame sequence figures}
+Below all required figures from evaluation part can be found.
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 0]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_0_side}
+}
+\subfigure[Frame 1]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_1_side}
+}
+\subfigure[Frame 2]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_2_side}
+}
+\subfigure[Frame 3]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_3_side}
+}
+\subfigure[Frame 4]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_4_side}
+}
+\subfigure[Frame 5]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_5_side}
+}
+\subfigure[Frame 6]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_6_side}
+}
+\subfigure[Frame 7]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_7_side}
+}
+\subfigure[Frame 8]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_8_side}
+}
+\subfigure[Frame 9]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_9_side}
+}
+\subfigure[Frame 11]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_11_side}
+}
+\subfigure[Frame 12]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_12_side}
+}
+\subfigure[Frame 13]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_13_side}
+}
+\subfigure[Frame 14]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_14_side}
+}
+\subfigure[Frame 15]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_15_side}
+}
+\subfigure[Frame 16]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_16_side}
+}
+\subfigure[Frame 17]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_17_side}
+}
+\subfigure[Frame 18]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_18_side}
+}
+\caption{Extracted boxes - side}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 19]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_19_side}
+}
+\subfigure[Frame 20]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_20_side}
+}
+\caption{Extracted boxes - side}
+\end{figure}
+
+
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 0]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_0_top}
+}
+\subfigure[Frame 1]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_1_top}
+}
+\subfigure[Frame 2]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_2_top}
+}
+\subfigure[Frame 3]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_3_top}
+}
+\subfigure[Frame 4]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_4_top}
+}
+\subfigure[Frame 5]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_5_top}
+}
+\subfigure[Frame 6]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_6_top}
+}
+\subfigure[Frame 7]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_7_top}
+}
+\subfigure[Frame 8]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_8_top}
+}
+\subfigure[Frame 9]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_9_top}
+}
+\subfigure[Frame 11]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_11_top}
+}
+\subfigure[Frame 12]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_12_top}
+}
+\subfigure[Frame 13]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_13_top}
+}
+\subfigure[Frame 14]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_14_top}
+}
+\subfigure[Frame 15]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_15_top}
+}
+\subfigure[Frame 16]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_16_top}
+}
+\subfigure[Frame 17]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_17_top}
+}
+\subfigure[Frame 18]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_18_top}
+}
+\caption{Extracted boxes - top}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 19]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_19_top}
+}
+\subfigure[Frame 20]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_color_20_top}
+}
+\caption{Extracted boxes - top}
+\end{figure}
+
+
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 0]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_0_side}}
+\subfigure[Frame 1]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_1_side}}
+\subfigure[Frame 2]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_2_side}}
+\subfigure[Frame 3]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_3_side}}
+\subfigure[Frame 4]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_4_side}}
+\subfigure[Frame 5]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_5_side}}
+\subfigure[Frame 6]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_6_side}}
+\subfigure[Frame 7]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_7_side}}
+\subfigure[Frame 8]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_8_side}}
+\subfigure[Frame 9]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_9_side}}
+\subfigure[Frame 11]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_11_side}}
+\subfigure[Frame 12]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_12_side}}
+\subfigure[Frame 13]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_13_side}}
+\subfigure[Frame 14]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_14_side}}
+\subfigure[Frame 15]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_15_side}}
+\subfigure[Frame 16]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_16_side}}
+\subfigure[Frame 17]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_17_side}}
+\subfigure[Frame 18]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_18_side}}
+\caption{Extracted depth points - side}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 19]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_19_side}}
+\subfigure[Frame 20]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_20_side}}
+\caption{Extracted depth points - side}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 0]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_0_top}}
+\subfigure[Frame 1]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_1_top}}
+\subfigure[Frame 2]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_2_top}}
+\subfigure[Frame 3]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_3_top}}
+\subfigure[Frame 4]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_4_top}}
+\subfigure[Frame 5]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_5_top}}
+\subfigure[Frame 6]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_6_top}}
+\subfigure[Frame 7]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_7_top}}
+\subfigure[Frame 8]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_8_top}}
+\subfigure[Frame 9]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_9_top}}
+\subfigure[Frame 11]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_11_top}}
+\subfigure[Frame 12]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_12_top}}
+\subfigure[Frame 13]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_13_top}}
+\subfigure[Frame 14]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_14_top}}
+\subfigure[Frame 15]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_15_top}}
+\subfigure[Frame 16]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_16_top}}
+\subfigure[Frame 17]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_17_top}}
+\subfigure[Frame 18]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_18_top}}
+\caption{Extracted depth points - top}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 19]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_19_top}}
+\subfigure[Frame 20]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part1_range_20_top}}
+\caption{Extracted depth points - top}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 0]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_0_left_square}}
+\subfigure[Frame 1]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_1_left_square}}
+\subfigure[Frame 2]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_2_left_square}}
+\subfigure[Frame 3]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_3_left_square}}
+\subfigure[Frame 4]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_4_left_square}}
+\subfigure[Frame 5]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_5_left_square}}
+\subfigure[Frame 6]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_6_left_square}}
+\subfigure[Frame 7]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_7_left_square}}
+\subfigure[Frame 8]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_8_left_square}}
+\subfigure[Frame 9]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_9_left_square}}
+\subfigure[Frame 11]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_11_left_square}}
+\subfigure[Frame 12]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_12_left_square}}
+\subfigure[Frame 13]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_13_left_square}}
+\subfigure[Frame 14]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_14_left_square}}
+\subfigure[Frame 15]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_15_left_square}}
+\subfigure[Frame 16]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_16_left_square}}
+\subfigure[Frame 17]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_17_left_square}}
+\subfigure[Frame 18]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_18_left_square}}
+\caption{Leftmost zoomed in square}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\subfigure[Frame 19]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_19_left_square}}
+\subfigure[Frame 20]{
+\includegraphics[width=0.30\linewidth]{../refactored/figures/part2_20_left_square}}
+\caption{Leftmost zoomed in square}
+\end{figure}
+
 
 
 
